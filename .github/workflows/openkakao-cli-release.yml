@@ -166,8 +166,8 @@ jobs:
         run: |
           mkdir -p tap/Formula
           cat > tap/Formula/openkakao-cli.rb <<FORMULA
-          class OpenkakaoRs < Formula
-            desc "Rust rewrite of OpenKakao CLI"
+          class OpenkakaoCli < Formula
+            desc "Unofficial KakaoTalk CLI for macOS"
             homepage "https://github.com/${REPO}"
             version "${VERSION}"
             license "MIT"

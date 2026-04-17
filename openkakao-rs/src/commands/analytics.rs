@@ -175,13 +175,13 @@ pub fn cmd_stats(
                 (uid, name, count)
             })
             .collect();
-        author_stats.sort_by(|a, b| b.2.cmp(&a.2));
+        author_stats.sort_by_key(|b| std::cmp::Reverse(b.2));
 
         let mut type_stats: Vec<(i32, &str, usize)> = type_counts
             .iter()
             .map(|(&t, &count)| (t, message_type_label(t), count))
             .collect();
-        type_stats.sort_by(|a, b| b.2.cmp(&a.2));
+        type_stats.sort_by_key(|b| std::cmp::Reverse(b.2));
 
         // Find peak hour
         let peak_hour = hourly_counts

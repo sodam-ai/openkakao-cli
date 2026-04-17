@@ -1,4 +1,4 @@
-use openkakao_rs::loco::crypto::LocoEncryptor;
+use openkakao_cli::loco::crypto::LocoEncryptor;
 
 #[test]
 fn new_generates_valid_encryptor() {

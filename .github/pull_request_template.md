@@ -8,7 +8,7 @@ Describe what changed and why.
 
 ## Validation
 
-- [ ] `cargo check --manifest-path openkakao-rs/Cargo.toml`
+- [ ] `cargo check --manifest-path openkakao-cli/Cargo.toml`
 - [ ] `python3 -m py_compile openkakao/*.py` (if Python files changed)
 - [ ] Manual CLI check (command + output)
 

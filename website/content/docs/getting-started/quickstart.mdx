@@ -37,7 +37,7 @@ This path is intentionally narrow: install, authenticate, inspect a chat, then s
 
 ```bash
 brew tap JungHoonGhae/openkakao
-brew install openkakao-rs
+brew install openkakao-cli
 ```
 
 ## Authenticate
@@ -45,8 +45,8 @@ brew install openkakao-rs
 Make sure KakaoTalk is running and already logged in.
 
 ```bash
-openkakao-rs login --save
-openkakao-rs auth
+openkakao-cli login --save
+openkakao-cli auth
 ```
 
 ## Inspect a Real Chat
@@ -54,13 +54,13 @@ openkakao-rs auth
 List chats first:
 
 ```bash
-openkakao-rs chats
+openkakao-cli chats
 ```
 
 Then read only a small slice:
 
 ```bash
-openkakao-rs read <chat_id> -n 20
+openkakao-cli read <chat_id> -n 20
 ```
 
 ## Export Before You Automate
@@ -68,13 +68,13 @@ openkakao-rs read <chat_id> -n 20
 Move one read into a structured format before you connect other tools:
 
 ```bash
-openkakao-rs read <chat_id> -n 20 --json | jq '.'
+openkakao-cli read <chat_id> -n 20 --json | jq '.'
 ```
 
 ## Send Only If You Need It
 
 ```bash
-openkakao-rs send <chat_id> "Hello from CLI!"
+openkakao-cli send <chat_id> "Hello from CLI!"
 ```
 
 <Callout title="Default prefix stays on for a reason">

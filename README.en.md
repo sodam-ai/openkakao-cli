@@ -2,7 +2,7 @@
   <h1>OpenKakao</h1>
   <p>Unofficial CLI for KakaoTalk on macOS.</p>
   <p>It works well as a terminal tool for humans and as a local interface for AI or agent workflows through JSON output, watch mode, hooks, and webhooks.</p>
-  <p>The executable name is <code>openkakao-rs</code>.</p>
+  <p>The executable name is <code>openkakao-cli</code>.</p>
 </div>
 
 <p align="center">
@@ -13,7 +13,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/JungHoonGhae/openkakao/stargazers"><img src="https://img.shields.io/github/stars/JungHoonGhae/openkakao" alt="GitHub stars" /></a>
+  <a href="https://github.com/JungHoonGhae/openkakao-cli/stargazers"><img src="https://img.shields.io/github/stars/JungHoonGhae/openkakao-cli" alt="GitHub stars" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License" /></a>
   <a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/Rust-1.75+-orange.svg" alt="Rust" /></a>
   <a href="https://openkakao.vercel.app/"><img src="https://img.shields.io/badge/status-v1.0.0%20stable-brightgreen" alt="Status Stable" /></a>
@@ -44,15 +44,15 @@
 <p align="center">
   <a href="https://www.star-history.com/?repos=JungHoonGhae%2Fopenkakao&type=date&legend=top-left">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/image?repos=JungHoonGhae/openkakao&type=date&theme=dark&legend=top-left" />
-      <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/image?repos=JungHoonGhae/openkakao&type=date&legend=top-left" />
-      <img alt="Star History Chart" src="https://api.star-history.com/image?repos=JungHoonGhae/openkakao&type=date&legend=top-left" width="600" />
+      <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/image?repos=JungHoonGhae/openkakao-cli&type=date&theme=dark&legend=top-left" />
+      <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/image?repos=JungHoonGhae/openkakao-cli&type=date&legend=top-left" />
+      <img alt="Star History Chart" src="https://api.star-history.com/image?repos=JungHoonGhae/openkakao-cli&type=date&legend=top-left" width="600" />
     </picture>
   </a>
 </p>
 
 <p align="center">
-  <img src="openkakao-rs/assets/thumbnail-en.png" alt="openkakao" width="720" />
+  <img src="openkakao-cli/assets/thumbnail-en.png" alt="openkakao" width="720" />
 </p>
 
 ## Quick Start
@@ -62,52 +62,52 @@
 ```bash
 # Homebrew
 brew tap JungHoonGhae/openkakao
-brew install openkakao-rs
+brew install openkakao-cli
 
 # 1. Save auth data
-openkakao-rs login --save
+openkakao-cli login --save
 
 # 2. List chats
-openkakao-rs chats
+openkakao-cli chats
 
 # 3. Read messages
-openkakao-rs read <chat_id> -n 20
+openkakao-cli read <chat_id> -n 20
 
 # 4. Read from local DB (no server contact)
-openkakao-rs local-chats
-openkakao-rs local-read <chat_id>
+openkakao-cli local-chats
+openkakao-cli local-read <chat_id>
 
 # 5. Send a message (requires allow_loco_write = true in config)
-openkakao-rs send <chat_id> "Hello from CLI!"
+openkakao-cli send <chat_id> "Hello from CLI!"
 ```
 
 Only force the older cache-backed path when you need it:
 
 ```bash
-openkakao-rs chats --rest
-openkakao-rs read <chat_id> --rest
-openkakao-rs members <chat_id> --rest
+openkakao-cli chats --rest
+openkakao-cli read <chat_id> --rest
+openkakao-cli members <chat_id> --rest
 ```
 
 ### For Agent
 
 ```bash
 # Structured output
-openkakao-rs --json chats
-openkakao-rs --json read <chat_id> -n 20
+openkakao-cli --json chats
+openkakao-cli --json read <chat_id> -n 20
 
 # Safe local DB reads (no server contact)
-openkakao-rs local-chats --json
-openkakao-rs local-read <chat_id> --json
+openkakao-cli local-chats --json
+openkakao-cli local-read <chat_id> --json
 
 # Preview before executing
-openkakao-rs send <chat_id> "message" --dry-run --json
+openkakao-cli send <chat_id> "message" --dry-run --json
 
 # Real-time event stream
-openkakao-rs watch --json
+openkakao-cli watch --json
 
 # Connect to local hooks or webhooks
-openkakao-rs --unattended --allow-watch-side-effects watch \
+openkakao-cli --unattended --allow-watch-side-effects watch \
   --hook-cmd 'jq . > /tmp/openkakao-event.json'
 ```
 
@@ -172,14 +172,14 @@ Read-only operations are always available:
 
 ```bash
 brew tap JungHoonGhae/openkakao
-brew install openkakao-rs
+brew install openkakao-cli
 ```
 
 ### From source
 
 ```bash
-git clone https://github.com/JungHoonGhae/openkakao.git
-cd openkakao/openkakao-rs
+git clone https://github.com/JungHoonGhae/openkakao-cli.git
+cd openkakao/openkakao-cli
 cargo install --path .
 ```
 
@@ -196,9 +196,9 @@ cargo install --path .
 Reverse engineering / local app-state diff:
 
 ```bash
-openkakao-rs profile-hints --local-graph --json
-openkakao-rs profile-hints --app-state --json > /tmp/profile-before.json
-openkakao-rs profile-hints --app-state --app-state-diff /tmp/profile-before.json --json
+openkakao-cli profile-hints --local-graph --json
+openkakao-cli profile-hints --app-state --json > /tmp/profile-before.json
+openkakao-cli profile-hints --app-state --app-state-diff /tmp/profile-before.json --json
 ```
 
 ## Claude Code Skill
@@ -210,7 +210,7 @@ npx skills add JungHoonGhae/skills@openkakao-cli
 ## Development
 
 ```bash
-cd openkakao-rs
+cd openkakao-cli
 cargo build --release
 ```
 

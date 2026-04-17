@@ -19,7 +19,7 @@ Use the auth commands with the transport model in mind:
 Verify the current token's validity.
 
 ```bash
-openkakao-rs auth
+openkakao-cli auth
 ```
 
 **Output:**
@@ -37,7 +37,7 @@ openkakao-rs auth
 Extract credentials from the running KakaoTalk app.
 
 ```bash
-openkakao-rs login --save
+openkakao-cli login --save
 ```
 
 | Flag | Description |
@@ -51,7 +51,7 @@ openkakao-rs login --save
 Refresh the access token using stored login parameters.
 
 ```bash
-openkakao-rs relogin [OPTIONS]
+openkakao-cli relogin [OPTIONS]
 ```
 
 | Flag | Description |
@@ -73,7 +73,7 @@ Preferred when:
 Attempt token renewal using the refresh_token.
 
 ```bash
-openkakao-rs renew
+openkakao-cli renew
 ```
 
 Tries two endpoints:

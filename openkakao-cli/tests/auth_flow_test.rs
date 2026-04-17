@@ -1,4 +1,4 @@
-use openkakao_rs::error::OpenKakaoError;
+use openkakao_cli::error::OpenKakaoError;
 
 #[test]
 fn token_expired_error_is_retryable() {

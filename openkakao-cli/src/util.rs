@@ -315,7 +315,7 @@ pub fn print_loco_error_hint(status: i64) {
         -950 => {
             eprintln!("  Error: Authentication rejected (-950).");
             eprintln!("  Likely causes:");
-            eprintln!("    1. Token expired: open KakaoTalk, browse chats, then 'openkakao-rs login --save'.");
+            eprintln!("    1. Token expired: open KakaoTalk, browse chats, then 'openkakao-cli login --save'.");
             eprintln!("    2. Session conflict: another client may have invalidated this session.");
             eprintln!("  Will attempt auto-refresh if possible.");
         }
@@ -346,11 +346,11 @@ pub fn print_loco_error_hint(status: i64) {
         }
         -1 => {
             eprintln!("  Error: Connection failed or no status in response.");
-            eprintln!("  Run 'openkakao-rs doctor --loco' to check connectivity.");
+            eprintln!("  Run 'openkakao-cli doctor --loco' to check connectivity.");
         }
         _ => {
             eprintln!(
-                "  Unknown LOCO error (status={}). Run 'openkakao-rs doctor' for diagnostics.",
+                "  Unknown LOCO error (status={}). Run 'openkakao-cli doctor' for diagnostics.",
                 status
             );
         }

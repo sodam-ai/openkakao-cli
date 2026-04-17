@@ -27,7 +27,7 @@ If you care about stable automation, use REST for cheap health checks and LOCO f
 ## Initial login
 
 ```bash
-openkakao-rs login --save
+openkakao-cli login --save
 ```
 
 That command extracts the local inputs it needs, performs login, and writes credentials to:
@@ -41,9 +41,9 @@ The file is created with `0600` permissions.
 ## Health checks
 
 ```bash
-openkakao-rs auth
-openkakao-rs doctor
-openkakao-rs auth-status
+openkakao-cli auth
+openkakao-cli doctor
+openkakao-cli auth-status
 ```
 
 Use `auth` for a fast REST-side check. Use `doctor --loco` when you need to know whether the stricter LOCO path is healthy too.
@@ -52,8 +52,8 @@ Use `auth-status` when you want the persisted recovery and cooldown state direct
 ## Recovery policy
 
 ```bash
-openkakao-rs relogin --fresh-xvc
-openkakao-rs renew
+openkakao-cli relogin --fresh-xvc
+openkakao-cli renew
 ```
 
 The recovery ladder is now policy-driven:
@@ -102,7 +102,7 @@ Commands that can create side effects without a human in the loop require an exp
 Example:
 
 ```bash
-openkakao-rs --unattended --allow-watch-side-effects watch --hook-cmd 'jq . > /tmp/event.json'
+openkakao-cli --unattended --allow-watch-side-effects watch --hook-cmd 'jq . > /tmp/event.json'
 ```
 
 The point is simple: if the CLI is going to act without waiting for you, you should have to say that plainly.

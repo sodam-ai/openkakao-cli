@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.1.1] - 2026-04-17
 
 ### Fixed
-- Republished the v1.1.0 binaries under v1.1.1 after the `v1.1.0` tag was force-moved and a stale `Cargo.lock` caused the rebuild to fail, leaving the GitHub Release with no assets and breaking `brew install openkakao-rs` (#14)
+- Republished the v1.1.0 binaries under v1.1.1 after the `v1.1.0` tag was force-moved and a stale `Cargo.lock` caused the rebuild to fail, leaving the GitHub Release with no assets and breaking `brew install openkakao-cli` (#14)
 - `clippy::unnecessary_sort_by` violations in `analytics.rs` surfaced by clippy 1.95
 
 ### Changed
@@ -35,7 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2026-03-11
 
 ### Added
-- Stable release of openkakao-rs — all LOCO and REST features production-ready
+- Stable release of openkakao-cli — all LOCO and REST features production-ready
 
 ### Changed
 - Version bumped from 0.9.4 to 1.0.0 (stable)
@@ -184,7 +184,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.4.2] - 2026-03-08
 
 ### Fixed
-- Homebrew-installed `openkakao-rs` now ships the same `send` CLI surface as `main`, including the default outgoing prefix behavior and `--no-prefix` / `-y` flags.
+- Homebrew-installed `openkakao-cli` now ships the same `send` CLI surface as `main`, including the default outgoing prefix behavior and `--no-prefix` / `-y` flags.
 
 ### Tests
 - Added regression coverage for outgoing message prefix formatting and `send` flag parsing.
@@ -236,18 +236,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 - **Python CLI 제거** (`openkakao/` 디렉토리, `pyproject.toml`, `login_test.py`, `refresh_and_login.py`, `test_connection.py`)
-  — Rust CLI (`openkakao-rs`)가 모든 기능을 대체
+  — Rust CLI (`openkakao-cli`)가 모든 기능을 대체
 
 ## [0.2.0-beta] - 2026-03-04
 
-### Added (openkakao-rs)
+### Added (openkakao-cli)
 - `send <chat_id> "메시지"` — LOCO WRITE로 메시지 전송
 - `watch [--chat-id ID] [--raw]` — 실시간 메시지 수신
 - `loco-read <chat_id> [-n count] [--all]` — SYNCMSG 기반 채팅 히스토리 조회
 - `loco-chats [--all]` — LOCO LCHATLIST로 채팅방 목록 조회
 - `loco-members <chat_id>` — 채팅방 멤버 조회
 - `relogin [--fresh-xvc]` — login.json + X-VC로 토큰 자동 갱신
-- Homebrew formula (`brew install openkakao-rs`)
+- Homebrew formula (`brew install openkakao-cli`)
 
 ### Fixed
 - LOCO LOGINLIST -950 해결 (login.json으로 fresh access_token 발급)

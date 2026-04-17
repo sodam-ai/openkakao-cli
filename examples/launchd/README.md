@@ -15,15 +15,15 @@ Guardrails:
 - keep `--allow-watch-side-effects` explicit
 - prefer `--hook-cmd` over `--webhook-url`
 - keep logs in `~/Library/Logs/openkakao/`
-- inspect `openkakao-rs auth-status` and `openkakao-rs doctor --loco` before assuming the service is healthy
+- inspect `openkakao-cli auth-status` and `openkakao-cli doctor --loco` before assuming the service is healthy
 
 Operational checks:
 
 ```bash
 launchctl print gui/$(id -u)/com.openkakao.watch
 tail -f ~/Library/Logs/openkakao/watch.stderr.log
-openkakao-rs auth-status
-openkakao-rs doctor --loco
+openkakao-cli auth-status
+openkakao-cli doctor --loco
 ```
 
 Unload:

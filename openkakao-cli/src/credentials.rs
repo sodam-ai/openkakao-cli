@@ -113,7 +113,7 @@ mod tests {
         assert_eq!(loaded.user_id, 12345);
         assert_eq!(loaded.device_uuid, "dev-uuid");
         assert_eq!(loaded.app_version, "3.7.0");
-        assert_eq!(loaded.device_name, "openkakao-rs");
+        assert_eq!(loaded.device_name, "openkakao-cli");
     }
 
     #[test]

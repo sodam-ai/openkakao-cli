@@ -106,7 +106,7 @@ pub fn cmd_read_rest(
     if !all {
         if let Some(oldest) = messages.first().map(|m| m.log_id) {
             println!(
-                "\nShowing {} messages. For older: openkakao-rs read {} --cursor {}",
+                "\nShowing {} messages. For older: openkakao-cli read {} --cursor {}",
                 messages.len(),
                 chat_id,
                 oldest
@@ -288,7 +288,7 @@ async fn fetch_syncmsg_pages(
                 }
                 eprintln!("[loco-read] Connection lost: {}", e);
                 eprintln!(
-                    "[loco-read] Resume with: openkakao-rs read {} --all --cursor {}",
+                    "[loco-read] Resume with: openkakao-cli read {} --all --cursor {}",
                     chat_id, cur
                 );
                 break;
@@ -300,7 +300,7 @@ async fn fetch_syncmsg_pages(
                 return Err(OpenKakaoError::loco("SYNCMSG", response.status()).into());
             }
             eprintln!(
-                "[loco-read] SYNCMSG returned status={}. Resume with: openkakao-rs read {} --all --cursor {}",
+                "[loco-read] SYNCMSG returned status={}. Resume with: openkakao-cli read {} --all --cursor {}",
                 response.status(), chat_id, cur
             );
             break;
@@ -420,7 +420,7 @@ async fn stream_syncmsg_pages(
                 }
                 eprintln!("[loco-read] Connection lost: {}", e);
                 eprintln!(
-                    "[loco-read] Resume with: openkakao-rs read {} --all --cursor {}",
+                    "[loco-read] Resume with: openkakao-cli read {} --all --cursor {}",
                     chat_id, cur
                 );
                 break;
@@ -432,7 +432,7 @@ async fn stream_syncmsg_pages(
                 return Err(OpenKakaoError::loco("SYNCMSG", response.status()).into());
             }
             eprintln!(
-                "[loco-read] SYNCMSG returned status={}. Resume with: openkakao-rs read {} --all --cursor {}",
+                "[loco-read] SYNCMSG returned status={}. Resume with: openkakao-cli read {} --all --cursor {}",
                 response.status(), chat_id, cur
             );
             break;

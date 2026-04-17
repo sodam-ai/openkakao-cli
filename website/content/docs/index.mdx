@@ -67,7 +67,7 @@ OpenKakao is strongest when you need one of these outcomes:
 
 ```mermaid
 flowchart LR
-    A[KakaoTalk macOS app] -->|Cache and app state| O[openkakao-rs]
+    A[KakaoTalk macOS app] -->|Cache and app state| O[openkakao-cli]
     O -->|REST calls| K[katalk.kakao.com]
     O -->|REST calls| P[talk-pilsner.kakao.com]
     O -->|LOCO TCP plus BSON| L[booking and ticket and LOCO servers]

@@ -1,4 +1,4 @@
-name: openkakao-rs Release
+name: openkakao-cli Release
 
 on:
   push:
@@ -25,13 +25,13 @@ jobs:
           rustflags: ""
 
       - name: Cargo fmt
-        run: cargo fmt --manifest-path openkakao-rs/Cargo.toml --check
+        run: cargo fmt --manifest-path openkakao-cli/Cargo.toml --check
 
       - name: Cargo clippy
-        run: cargo clippy --manifest-path openkakao-rs/Cargo.toml -- -D warnings
+        run: cargo clippy --manifest-path openkakao-cli/Cargo.toml -- -D warnings
 
       - name: Cargo test
-        run: cargo test --manifest-path openkakao-rs/Cargo.toml
+        run: cargo test --manifest-path openkakao-cli/Cargo.toml
 
   build-aarch64:
     runs-on: macos-14
@@ -47,21 +47,21 @@ jobs:
           rustflags: ""
 
       - name: Build
-        run: cargo build --release --target "$TARGET" --manifest-path openkakao-rs/Cargo.toml
+        run: cargo build --release --target "$TARGET" --manifest-path openkakao-cli/Cargo.toml
 
       - name: Package artifact
         run: |
-          ASSET="openkakao-rs-${TARGET}.tar.gz"
-          tar -C "openkakao-rs/target/${TARGET}/release" -czf "$ASSET" openkakao-rs
+          ASSET="openkakao-cli-${TARGET}.tar.gz"
+          tar -C "openkakao-cli/target/${TARGET}/release" -czf "$ASSET" openkakao-cli
           shasum -a 256 "$ASSET" > "$ASSET.sha256"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: openkakao-rs-${{ env.TARGET }}
+          name: openkakao-cli-${{ env.TARGET }}
           path: |
-            openkakao-rs-${{ env.TARGET }}.tar.gz
-            openkakao-rs-${{ env.TARGET }}.tar.gz.sha256
+            openkakao-cli-${{ env.TARGET }}.tar.gz
+            openkakao-cli-${{ env.TARGET }}.tar.gz.sha256
 
   build-x86_64:
     runs-on: macos-15-intel
@@ -77,21 +77,21 @@ jobs:
           rustflags: ""
 
       - name: Build
-        run: cargo build --release --target "$TARGET" --manifest-path openkakao-rs/Cargo.toml
+        run: cargo build --release --target "$TARGET" --manifest-path openkakao-cli/Cargo.toml
 
       - name: Package artifact
         run: |
-          ASSET="openkakao-rs-${TARGET}.tar.gz"
-          tar -C "openkakao-rs/target/${TARGET}/release" -czf "$ASSET" openkakao-rs
+          ASSET="openkakao-cli-${TARGET}.tar.gz"
+          tar -C "openkakao-cli/target/${TARGET}/release" -czf "$ASSET" openkakao-cli
           shasum -a 256 "$ASSET" > "$ASSET.sha256"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: openkakao-rs-${{ env.TARGET }}
+          name: openkakao-cli-${{ env.TARGET }}
           path: |
-            openkakao-rs-${{ env.TARGET }}.tar.gz
-            openkakao-rs-${{ env.TARGET }}.tar.gz.sha256
+            openkakao-cli-${{ env.TARGET }}.tar.gz
+            openkakao-cli-${{ env.TARGET }}.tar.gz.sha256
 
   release:
     runs-on: ubuntu-latest
@@ -107,10 +107,10 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            dist/openkakao-rs-aarch64-apple-darwin.tar.gz
-            dist/openkakao-rs-aarch64-apple-darwin.tar.gz.sha256
-            dist/openkakao-rs-x86_64-apple-darwin.tar.gz
-            dist/openkakao-rs-x86_64-apple-darwin.tar.gz.sha256
+            dist/openkakao-cli-aarch64-apple-darwin.tar.gz
+            dist/openkakao-cli-aarch64-apple-darwin.tar.gz.sha256
+            dist/openkakao-cli-x86_64-apple-darwin.tar.gz
+            dist/openkakao-cli-x86_64-apple-darwin.tar.gz.sha256
 
   update-homebrew-tap:
     runs-on: ubuntu-latest
@@ -143,8 +143,8 @@ jobs:
         id: meta
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
-          ARM_SHA=$(awk '{print $1}' dist/openkakao-rs-aarch64-apple-darwin.tar.gz.sha256)
-          X86_SHA=$(awk '{print $1}' dist/openkakao-rs-x86_64-apple-darwin.tar.gz.sha256)
+          ARM_SHA=$(awk '{print $1}' dist/openkakao-cli-aarch64-apple-darwin.tar.gz.sha256)
+          X86_SHA=$(awk '{print $1}' dist/openkakao-cli-x86_64-apple-darwin.tar.gz.sha256)
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "arm_sha=$ARM_SHA" >> "$GITHUB_OUTPUT"
           echo "x86_sha=$X86_SHA" >> "$GITHUB_OUTPUT"
@@ -165,7 +165,7 @@ jobs:
           TAG: ${{ github.ref_name }}
         run: |
           mkdir -p tap/Formula
-          cat > tap/Formula/openkakao-rs.rb <<FORMULA
+          cat > tap/Formula/openkakao-cli.rb <<FORMULA
           class OpenkakaoRs < Formula
             desc "Rust rewrite of OpenKakao CLI"
             homepage "https://github.com/${REPO}"
@@ -174,20 +174,20 @@ jobs:
 
             on_macos do
               if Hardware::CPU.arm?
-                url "https://github.com/${REPO}/releases/download/${TAG}/openkakao-rs-aarch64-apple-darwin.tar.gz"
+                url "https://github.com/${REPO}/releases/download/${TAG}/openkakao-cli-aarch64-apple-darwin.tar.gz"
                 sha256 "${ARM_SHA}"
               else
-                url "https://github.com/${REPO}/releases/download/${TAG}/openkakao-rs-x86_64-apple-darwin.tar.gz"
+                url "https://github.com/${REPO}/releases/download/${TAG}/openkakao-cli-x86_64-apple-darwin.tar.gz"
                 sha256 "${X86_SHA}"
               end
             end
 
             def install
-              bin.install "openkakao-rs"
+              bin.install "openkakao-cli"
             end
 
             test do
-              assert_match "openkakao-rs", shell_output("#{bin}/openkakao-rs --help")
+              assert_match "openkakao-cli", shell_output("#{bin}/openkakao-cli --help")
             end
           end
           FORMULA
@@ -199,10 +199,10 @@ jobs:
           cd tap
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add Formula/openkakao-rs.rb
+          git add Formula/openkakao-cli.rb
           if git diff --cached --quiet; then
             echo "No formula changes to commit."
             exit 0
           fi
-          git commit -m "chore: update openkakao-rs ${VERSION}"
+          git commit -m "chore: update openkakao-cli ${VERSION}"
           git push

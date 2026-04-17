@@ -9,13 +9,13 @@ Use `watch` when you need real-time behavior, but keep the mental model small: i
 
 ```bash
 # Watch all chats
-openkakao-rs watch
+openkakao-cli watch
 
 # Filter by chat
-openkakao-rs watch --chat-id <chat_id>
+openkakao-cli watch --chat-id <chat_id>
 
 # Show raw BSON body
-openkakao-rs watch --raw
+openkakao-cli watch --raw
 ```
 
 ## Read Receipts
@@ -23,7 +23,7 @@ openkakao-rs watch --raw
 Send NOTIREAD (read receipts) for incoming messages, so the sender sees their message was read:
 
 ```bash
-openkakao-rs --unattended --allow-watch-side-effects watch --read-receipt
+openkakao-cli --unattended --allow-watch-side-effects watch --read-receipt
 ```
 
 ## Auto-Reconnect
@@ -32,13 +32,13 @@ The watch command automatically reconnects on network failures with exponential 
 
 ```bash
 # Default: 5 reconnect attempts
-openkakao-rs watch
+openkakao-cli watch
 
 # Custom max attempts
-openkakao-rs watch --max-reconnect 10
+openkakao-cli watch --max-reconnect 10
 
 # Disable reconnect (exit on first error)
-openkakao-rs watch --max-reconnect 0
+openkakao-cli watch --max-reconnect 0
 ```
 
 Reconnect behavior:
@@ -52,10 +52,10 @@ Reconnect behavior:
 Automatically download media attachments (photos, videos, audio, files) as they arrive:
 
 ```bash
-openkakao-rs watch --download-media
+openkakao-cli watch --download-media
 
 # Custom download directory
-openkakao-rs watch --download-media --download-dir ./media
+openkakao-cli watch --download-media --download-dir ./media
 ```
 
 Files are saved as `{download_dir}/{chat_id}/{log_id}_{filename}`.
@@ -65,7 +65,7 @@ Files are saved as `{download_dir}/{chat_id}/{log_id}_{filename}`.
 The first hook layer is local-only. `watch` can invoke a shell command for matched `MSG` events without sending chat content to an external webhook by default.
 
 ```bash
-openkakao-rs --unattended --allow-watch-side-effects watch \
+openkakao-cli --unattended --allow-watch-side-effects watch \
   --hook-cmd 'jq -r ".chat_name + ": " + .message" >> ~/kakao-watch.log' \
   --hook-chat-id 900000000000001 \
   --hook-keyword urgent \
@@ -90,7 +90,7 @@ This is the recommended default because it keeps message content on the same mac
 If you do want to forward matched events out of the machine, `watch` can POST the same normalized event JSON to a webhook URL.
 
 ```bash
-openkakao-rs --unattended --allow-watch-side-effects watch \
+openkakao-cli --unattended --allow-watch-side-effects watch \
   --webhook-url https://hooks.example.com/openkakao \
   --webhook-header 'Authorization: Bearer token' \
   --webhook-signing-secret 'super-secret' \
@@ -140,7 +140,7 @@ If your receiver runs on infrastructure with well-synchronized clocks (NTP), you
 ## Combining Options
 
 ```bash
-openkakao-rs --unattended --allow-watch-side-effects watch \
+openkakao-cli --unattended --allow-watch-side-effects watch \
   --chat-id <chat_id> \
   --read-receipt \
   --download-media \

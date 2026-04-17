@@ -37,8 +37,8 @@ The strongest patterns start with reading and structuring message context first,
 Use KakaoTalk like an inbox you can actually process.
 
 ```bash
-openkakao-rs unread --json
-openkakao-rs read <chat_id> -n 50 --json | jq '.'
+openkakao-cli unread --json
+openkakao-cli read <chat_id> -n 50 --json | jq '.'
 ```
 
 This is the best first automation because it stays read-only and keeps the trust boundary narrow.
@@ -57,7 +57,7 @@ Move message slices into local systems you already control.
 Use `watch` when you need reaction speed rather than periodic polling.
 
 ```bash
-openkakao-rs watch --chat-id <chat_id>
+openkakao-cli watch --chat-id <chat_id>
 ```
 
 Typical uses:
@@ -92,8 +92,8 @@ Good patterns:
 ### Pull
 
 ```bash
-openkakao-rs unread --json
-openkakao-rs read <chat_id> -n 50 --json
+openkakao-cli unread --json
+openkakao-cli read <chat_id> -n 50 --json
 ```
 
 Choose this when:
@@ -105,7 +105,7 @@ Choose this when:
 ### Push
 
 ```bash
-openkakao-rs watch --chat-id <chat_id>
+openkakao-cli watch --chat-id <chat_id>
 ```
 
 Choose this when:

@@ -3,7 +3,7 @@ use predicates::prelude::*;
 
 fn cmd() -> Command {
     #[allow(deprecated)]
-    Command::cargo_bin("openkakao-rs").unwrap()
+    Command::cargo_bin("openkakao-cli").unwrap()
 }
 
 #[test]

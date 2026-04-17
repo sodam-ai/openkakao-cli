@@ -2,7 +2,7 @@
 set -eu
 
 ROOT="$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)"
-BIN="${ROOT}/openkakao-rs/target/debug/openkakao-rs"
+BIN="${ROOT}/openkakao-cli/target/debug/openkakao-cli"
 UID_VALUE="$(id -u)"
 LABEL="com.openkakao.watch-smoke"
 TMP_DIR="$(mktemp -d)"
@@ -18,7 +18,7 @@ cleanup() {
 
 trap cleanup EXIT INT TERM
 
-cargo build --manifest-path "${ROOT}/openkakao-rs/Cargo.toml" >/dev/null
+cargo build --manifest-path "${ROOT}/openkakao-cli/Cargo.toml" >/dev/null
 
 if [ "${MODE}" = "auto" ]; then
   if "${BIN}" auth >/dev/null 2>&1; then

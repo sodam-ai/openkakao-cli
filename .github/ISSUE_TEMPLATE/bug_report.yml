@@ -13,7 +13,7 @@ body:
     attributes:
       label: Summary
       description: One-line description of the bug.
-      placeholder: openkakao-rs chats returns empty even with valid token
+      placeholder: openkakao-cli chats returns empty even with valid token
     validations:
       required: true
   - type: textarea
@@ -22,8 +22,8 @@ body:
       label: Steps to reproduce
       description: Exact steps, including command and flags.
       placeholder: |
-        1. Run `openkakao-rs login --save`
-        2. Run `openkakao-rs chats`
+        1. Run `openkakao-cli login --save`
+        2. Run `openkakao-cli chats`
         3. Observe ...
     validations:
       required: true
@@ -50,7 +50,7 @@ body:
       placeholder: |
         - macOS: 15.x
         - Arch: arm64 / x86_64
-        - CLI: openkakao-rs 0.1.2
+        - CLI: openkakao-cli 0.1.2
     validations:
       required: true
   - type: checkboxes

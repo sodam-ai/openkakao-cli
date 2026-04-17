@@ -1,4 +1,4 @@
-use openkakao_rs::loco::packet::{LocoPacket, PacketBuilder, HEADER_SIZE};
+use openkakao_cli::loco::packet::{LocoPacket, PacketBuilder, HEADER_SIZE};
 
 #[test]
 fn encode_decode_roundtrip_getconf() {

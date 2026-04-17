@@ -12,7 +12,7 @@ description: Send messages, edit messages, delete messages, add reactions, and m
 Send a text message via LOCO WRITE command.
 
 ```bash
-openkakao-rs send <chat_id> "message" [OPTIONS]
+openkakao-cli send <chat_id> "message" [OPTIONS]
 ```
 
 | Flag | Description |
@@ -39,7 +39,7 @@ Unattended sends are rate-limited by `safety.min_unattended_send_interval_secs` 
 Messages are prefixed with `🤖 [Sent via openkakao]` by default. Use the global `--no-prefix` flag to disable:
 
 ```bash
-openkakao-rs --unattended --allow-non-interactive-send --no-prefix send <chat_id> "raw message" -y
+openkakao-cli --unattended --allow-non-interactive-send --no-prefix send <chat_id> "raw message" -y
 ```
 
 ---
@@ -49,7 +49,7 @@ openkakao-rs --unattended --allow-non-interactive-send --no-prefix send <chat_id
 Send a file (photo, video, or document) via LOCO SHIP+POST.
 
 ```bash
-openkakao-rs send-file <chat_id> <file> [OPTIONS]
+openkakao-cli send-file <chat_id> <file> [OPTIONS]
 ```
 
 | Flag | Description |
@@ -78,7 +78,7 @@ The media type is auto-detected from file magic bytes:
 Alias for `send-file`. Identical behavior.
 
 ```bash
-openkakao-rs --unattended --allow-non-interactive-send send-photo <chat_id> photo.jpg -y
+openkakao-cli --unattended --allow-non-interactive-send send-photo <chat_id> photo.jpg -y
 ```
 
 | Flag | Description |
@@ -92,7 +92,7 @@ openkakao-rs --unattended --allow-non-interactive-send send-photo <chat_id> phot
 Edit a message via LOCO REWRITE command.
 
 ```bash
-openkakao-rs edit <chat_id> <log_id> "new message" [OPTIONS]
+openkakao-cli edit <chat_id> <log_id> "new message" [OPTIONS]
 ```
 
 | Flag | Description |
@@ -121,7 +121,7 @@ As with `send`, `-y` requires unattended send permission.
 Delete a message via LOCO DELETEMSG. The message is replaced by a system feed (feedType:14) in DM chats.
 
 ```bash
-openkakao-rs delete <chat_id> <log_id> [OPTIONS]
+openkakao-cli delete <chat_id> <log_id> [OPTIONS]
 ```
 
 | Flag | Description |
@@ -150,7 +150,7 @@ As with `send`, `-y` requires unattended send permission (`--unattended --allow-
 Add a reaction to a message via LOCO ACTION command.
 
 ```bash
-openkakao-rs react <chat_id> <log_id> [OPTIONS]
+openkakao-cli react <chat_id> <log_id> [OPTIONS]
 ```
 
 | Flag | Description |
@@ -176,10 +176,10 @@ When `--json` is set:
 All write commands support `--dry-run` to preview the action without making any server call.
 
 ```bash
-openkakao-rs send 123 "hello" --dry-run
+openkakao-cli send 123 "hello" --dry-run
 # [dry-run] Would send to chat 123: "🤖 [Sent via openkakao] hello"
 
-openkakao-rs delete 123 456 --dry-run --json
+openkakao-cli delete 123 456 --dry-run --json
 # {"dry_run": true, "action": "delete", "chat_id": 123, "log_id": 456}
 ```
 
@@ -192,7 +192,7 @@ This is safe even without `allow_loco_write` — no LOCO connection is made.
 Mark messages as read up to a specific logId via LOCO NOTIREAD. This is a fire-and-forget command — no response is expected from the server.
 
 ```bash
-openkakao-rs mark-read <chat_id> <log_id> [OPTIONS]
+openkakao-cli mark-read <chat_id> <log_id> [OPTIONS]
 ```
 
 | Flag | Description |

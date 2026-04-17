@@ -245,7 +245,7 @@ pub fn cmd_doctor(json: bool, test_loco: bool, config: &OpenKakaoConfig) -> Resu
                     name: "Saved credentials".into(),
                     status: CheckStatus::Warn,
                     detail: format!(
-                        "Not found. Run 'openkakao-rs login --save'. ({})",
+                        "Not found. Run 'openkakao-cli login --save'. ({})",
                         path.display()
                     ),
                 });
@@ -494,7 +494,7 @@ pub fn cmd_doctor(json: bool, test_loco: bool, config: &OpenKakaoConfig) -> Resu
         });
         println!("{}", serde_json::to_string_pretty(&out)?);
     } else {
-        println!("openkakao-rs doctor (v{})", VERSION);
+        println!("openkakao-cli doctor (v{})", VERSION);
         println!();
         for c in &checks {
             let (icon, color_fn): (&str, fn(&str) -> String) = match c.status {
@@ -528,7 +528,7 @@ pub fn cmd_doctor(json: bool, test_loco: bool, config: &OpenKakaoConfig) -> Resu
             println!("  Tip: run with --loco to also test LOCO booking connectivity.");
         }
         println!(
-            "  Tip: run 'openkakao-rs auth-status --json' for the raw persisted recovery state."
+            "  Tip: run 'openkakao-cli auth-status --json' for the raw persisted recovery state."
         );
     }
 

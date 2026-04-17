@@ -37,7 +37,7 @@ As of v0.7.1, `read` bootstraps from the LOGINLIST response for faster initial r
 As of v0.9.3, `read` also merges messages from the local SQLite cache (populated by `watch`). This means messages captured during watch sessions are available in subsequent reads even if LOCO only returns a limited window. The merge is deduplicated by logId, so you never see duplicates. LOCO-fetched messages are also back-filled into the cache for future reads.
 
 ```bash
-openkakao-rs read <chat_id> [OPTIONS]
+openkakao-cli read <chat_id> [OPTIONS]
 ```
 
 | Flag | Description |
@@ -69,10 +69,10 @@ Use `read --rest` for:
 
 ```bash
 # Default: LOCO
-openkakao-rs read <chat_id> --all --json > history.json
+openkakao-cli read <chat_id> --all --json > history.json
 
 # Explicit REST fallback
-openkakao-rs read <chat_id> --rest
+openkakao-cli read <chat_id> --rest
 ```
 
 <Callout title="Legacy command">
@@ -84,7 +84,7 @@ openkakao-rs read <chat_id> --rest
 Search messages in a chat room.
 
 ```bash
-openkakao-rs search <chat_id> "keyword"
+openkakao-cli search <chat_id> "keyword"
 ```
 
 Use this when you know the chat and need message lookup, not full export flow.
@@ -94,9 +94,9 @@ Use this when you know the chat and need message lookup, not full export flow.
 Export messages to a file.
 
 ```bash
-openkakao-rs export <chat_id> --format json
-openkakao-rs export <chat_id> --format csv -o messages.csv
-openkakao-rs export <chat_id> --format txt -o chat.txt
+openkakao-cli export <chat_id> --format json
+openkakao-cli export <chat_id> --format csv -o messages.csv
+openkakao-cli export <chat_id> --format txt -o chat.txt
 ```
 
 | Flag | Description |

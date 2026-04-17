@@ -1,4 +1,4 @@
-use openkakao_rs::loco::packet::{LocoPacket, PacketBuilder, HEADER_SIZE};
+use openkakao_cli::loco::packet::{LocoPacket, PacketBuilder, HEADER_SIZE};
 
 #[test]
 fn packet_builder_increments_id() {

@@ -17,7 +17,7 @@ body:
     attributes:
       label: Proposed solution
       description: Describe the behavior and user-facing CLI/API changes.
-      placeholder: Add `openkakao-rs digest --since 24h --keywords ...`
+      placeholder: Add `openkakao-cli digest --since 24h --keywords ...`
     validations:
       required: true
   - type: textarea

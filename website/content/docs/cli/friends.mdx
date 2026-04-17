@@ -8,7 +8,7 @@ description: Friend list management.
 List your friends.
 
 ```bash
-openkakao-rs friends [OPTIONS]
+openkakao-cli friends [OPTIONS]
 ```
 
 | Flag | Description |
@@ -22,12 +22,12 @@ openkakao-rs friends [OPTIONS]
 | `--json` | JSON output |
 
 ```bash
-openkakao-rs friends -s "John"
-openkakao-rs friends --json | jq '.[].nickname'
-openkakao-rs friends --local -s "Alice"
-openkakao-rs friends --local --hidden
-openkakao-rs friends --local --chat-id 900000000000003
-openkakao-rs friends --local --user-id 100000003 --json
+openkakao-cli friends -s "John"
+openkakao-cli friends --json | jq '.[].nickname'
+openkakao-cli friends --local -s "Alice"
+openkakao-cli friends --local --hidden
+openkakao-cli friends --local --chat-id 900000000000003
+openkakao-cli friends --local --user-id 100000003 --json
 ```
 
 > [!NOTE]
@@ -38,8 +38,8 @@ openkakao-rs friends --local --user-id 100000003 --json
 ## favorite / unfavorite
 
 ```bash
-openkakao-rs favorite <user_id>
-openkakao-rs unfavorite <user_id>
+openkakao-cli favorite <user_id>
+openkakao-cli unfavorite <user_id>
 ```
 
 ---
@@ -47,8 +47,8 @@ openkakao-rs unfavorite <user_id>
 ## hide / unhide
 
 ```bash
-openkakao-rs hide <user_id>
-openkakao-rs unhide <user_id>
+openkakao-cli hide <user_id>
+openkakao-cli unhide <user_id>
 ```
 
 ---
@@ -58,7 +58,7 @@ openkakao-rs unhide <user_id>
 Inspect the LOCO block/hidden-style member surface directly.
 
 ```bash
-openkakao-rs loco-blocked [--json]
+openkakao-cli loco-blocked [--json]
 ```
 
 This is the first LOCO-backed friend-adjacent surface currently exposed in the CLI. It is useful for debugging which users are present in the server-side block list even when REST friend endpoints are unhealthy.
@@ -70,7 +70,7 @@ This is the first LOCO-backed friend-adjacent surface currently exposed in the C
 If you know a `user_id` but not a `chat_id`, you can resolve a profile from the local LOCO graph built from known chats.
 
 ```bash
-openkakao-rs profile <user_id> --local
+openkakao-cli profile <user_id> --local
 ```
 
 `profile <user_id>` also falls back to this local graph automatically when the REST friend profile path fails.
@@ -84,8 +84,8 @@ Use this when:
 For reverse engineering and debugging, you can correlate cached REST profile requests with the local graph:
 
 ```bash
-openkakao-rs profile-hints --local-graph --json
-openkakao-rs profile-hints --local-graph --user-id <user_id> --probe-syncmainpf --json
+openkakao-cli profile-hints --local-graph --json
+openkakao-cli profile-hints --local-graph --user-id <user_id> --probe-syncmainpf --json
 ```
 
 This helps when:
@@ -96,6 +96,6 @@ This helps when:
 If you need to inspect what the desktop app changes on disk before and after opening a profile:
 
 ```bash
-openkakao-rs profile-hints --app-state --json > /tmp/profile-before.json
-openkakao-rs profile-hints --app-state --app-state-diff /tmp/profile-before.json --json
+openkakao-cli profile-hints --app-state --json > /tmp/profile-before.json
+openkakao-cli profile-hints --app-state --app-state-diff /tmp/profile-before.json --json
 ```

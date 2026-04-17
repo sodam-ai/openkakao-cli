@@ -9,13 +9,13 @@ description: Install OpenKakao CLI on macOS.
 
 ```bash
 brew tap JungHoonGhae/openkakao
-brew install openkakao-rs
+brew install openkakao-cli
 ```
 
 Upgrade later with:
 
 ```bash
-brew update && brew upgrade openkakao-rs
+brew update && brew upgrade openkakao-cli
 ```
 
 ## Build from source
@@ -23,28 +23,28 @@ brew update && brew upgrade openkakao-rs
 Requires Rust `>= 1.75`.
 
 ```bash
-git clone https://github.com/JungHoonGhae/openkakao.git
-cd openkakao/openkakao-rs
+git clone https://github.com/JungHoonGhae/openkakao-cli.git
+cd openkakao/openkakao-cli
 cargo install --path .
 ```
 
 ## Verify
 
 ```bash
-openkakao-rs --version
+openkakao-cli --version
 ```
 
 ## Shell completions
 
 ```bash
 # zsh
-openkakao-rs completions zsh >> ~/.zfunc/_openkakao-rs
+openkakao-cli completions zsh >> ~/.zfunc/_openkakao-cli
 
 # fish
-openkakao-rs completions fish > ~/.config/fish/completions/openkakao-rs.fish
+openkakao-cli completions fish > ~/.config/fish/completions/openkakao-cli.fish
 
 # bash
-openkakao-rs completions bash >> ~/.bash_completion
+openkakao-cli completions bash >> ~/.bash_completion
 ```
 
 ## Before you continue

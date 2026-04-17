@@ -47,7 +47,7 @@ pub fn cmd_auth(json: bool) -> Result<()> {
             println!("  Token is invalid or expired.");
         }
         println!(
-            "  Hint: open KakaoTalk, open chat list once, then run 'openkakao-rs login --save'."
+            "  Hint: open KakaoTalk, open chat list once, then run 'openkakao-cli login --save'."
         );
     }
 

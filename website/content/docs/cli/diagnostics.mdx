@@ -8,7 +8,7 @@ description: Diagnostics, persisted recovery state, connection testing, raw LOCO
 Run diagnostic health checks.
 
 ```bash
-openkakao-rs doctor [--loco]
+openkakao-cli doctor [--loco]
 ```
 
 | Flag | Description |
@@ -40,8 +40,8 @@ Checks performed:
 Inspect the persisted recovery state without the broader environment checks.
 
 ```bash
-openkakao-rs auth-status
-openkakao-rs auth-status --json
+openkakao-cli auth-status
+openkakao-cli auth-status --json
 ```
 
 This is the fastest way to answer:
@@ -72,7 +72,7 @@ Use `auth-status` when you want recovery state only. Use `doctor` when you want 
 `loco-test` remains available as a hidden compatibility command, but new usage should move to `doctor --loco`.
 
 ```bash
-openkakao-rs loco-test
+openkakao-cli loco-test
 ```
 
 It still performs Booking → Checkin → LOGINLIST and reports success with chat room count.
@@ -82,7 +82,7 @@ It still performs Booking → Checkin → LOGINLIST and reports success with cha
 For verbose protocol logging:
 
 ```bash
-OPENKAKAO_RS_DEBUG=1 openkakao-rs loco-test
+OPENKAKAO_RS_DEBUG=1 openkakao-cli loco-test
 ```
 
 ---
@@ -92,8 +92,8 @@ OPENKAKAO_RS_DEBUG=1 openkakao-rs loco-test
 Probe a LOCO method directly and print the raw response.
 
 ```bash
-openkakao-rs probe BLSYNC --body '{"r":0,"pr":0}'
-openkakao-rs probe GETMEM --body '{"chatId":900000000000001}' --json
+openkakao-cli probe BLSYNC --body '{"r":0,"pr":0}'
+openkakao-cli probe GETMEM --body '{"chatId":900000000000001}' --json
 ```
 
 Use this when you are reverse-engineering or validating a new LOCO surface.
@@ -109,9 +109,9 @@ Use this when you are reverse-engineering or validating a new LOCO surface.
 Inspect cached profile requests, local LOCO graph hints, and optional app-state snapshots.
 
 ```bash
-openkakao-rs profile-hints --local-graph --json
-openkakao-rs profile-hints --app-state --json
-openkakao-rs profile-hints --app-state --app-state-diff /tmp/profile-before.json --json
+openkakao-cli profile-hints --local-graph --json
+openkakao-cli profile-hints --app-state --json
+openkakao-cli profile-hints --app-state --app-state-diff /tmp/profile-before.json --json
 ```
 
 Use this when you are reverse-engineering:
@@ -133,7 +133,7 @@ Important pieces:
 If the desktop app is logged in and you want to inspect what changes when opening a profile or multi-profile UI, the recommended flow is:
 
 ```bash
-openkakao-rs profile-hints --app-state --json > /tmp/profile-before.json
+openkakao-cli profile-hints --app-state --json > /tmp/profile-before.json
 # open the target profile or multi-profile UI in KakaoTalk
-openkakao-rs profile-hints --app-state --app-state-diff /tmp/profile-before.json --json
+openkakao-cli profile-hints --app-state --app-state-diff /tmp/profile-before.json --json
 ```

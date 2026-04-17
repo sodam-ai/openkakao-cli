@@ -8,7 +8,7 @@ description: List and inspect chat rooms.
 List chat rooms. By default this uses LOCO and gives you the broader chat list surface.
 
 ```bash
-openkakao-rs chats [OPTIONS]
+openkakao-cli chats [OPTIONS]
 ```
 
 | Flag | Description |
@@ -41,7 +41,7 @@ Choose `chats --rest` when you want:
 `loco-chats` remains available as a hidden compatibility command, but new usage should move to `chats`.
 
 ```bash
-openkakao-rs loco-chats [--all]
+openkakao-cli loco-chats [--all]
 ```
 
 ---
@@ -51,7 +51,7 @@ openkakao-rs loco-chats [--all]
 List members in a chat room. By default this uses LOCO and falls back to REST if the LOCO request fails.
 
 ```bash
-openkakao-rs members <chat_id> [--full] [--rest]
+openkakao-cli members <chat_id> [--full] [--rest]
 ```
 
 Use default `members` when you want:
@@ -80,7 +80,7 @@ Use `members --full` when you want:
 Get detailed information about a chat room.
 
 ```bash
-openkakao-rs chatinfo <chat_id>
+openkakao-cli chatinfo <chat_id>
 ```
 
 Returns raw LOCO CHATONROOM response with metadata, settings, and member count.
@@ -98,7 +98,7 @@ MemoChat (나와의 채팅) is your private chat-with-yourself room. It is usefu
 MemoChat does **not** appear in the default LOCO `LCHATLIST` response, so it won't be listed by the plain `chats` command or by `chats --type memo` (the filter applies after the fetch). The `chats --rest` path _may_ include MemoChat if it is present in your Pilsner cache. For a reliable way to find or create MemoChat, use `chatinfo` with id `0`:
 
 ```bash
-openkakao-rs chatinfo 0
+openkakao-cli chatinfo 0
 ```
 
 This issues a LOCO `CREATE` command with `memberIds: []` and `memoChat: true`. If a MemoChat already exists for your account, the server returns its chatId. If not, it creates one.
@@ -107,10 +107,10 @@ Once you have the MemoChat chatId, you can use it with `read`, `send`, `watch`, 
 
 ```bash
 # Read MemoChat messages
-openkakao-rs read <memo_chat_id>
+openkakao-cli read <memo_chat_id>
 
 # Send a test message to MemoChat
-openkakao-rs send <memo_chat_id> "test message" -y
+openkakao-cli send <memo_chat_id> "test message" -y
 ```
 
 MemoChat is the safest target for testing outbound automation before pointing it at real conversations.
@@ -122,7 +122,7 @@ MemoChat is the safest target for testing outbound automation before pointing it
 `profile` can point at a specific chat and reuse LOCO `GETMEM`.
 
 ```bash
-openkakao-rs profile <user_id> --chat-id <chat_id>
+openkakao-cli profile <user_id> --chat-id <chat_id>
 ```
 
 Use this when you already know the chat and want:
@@ -134,7 +134,7 @@ Use this when you already know the chat and want:
 If you do not know the right chat, you can also resolve from the local LOCO graph:
 
 ```bash
-openkakao-rs profile <user_id> --local
+openkakao-cli profile <user_id> --local
 ```
 
 This scans known chats and merges `GETMEM` results into a partial graph. It is slower than `--chat-id`, but it can still resolve users that have already appeared somewhere in your LOCO-visible chat set.

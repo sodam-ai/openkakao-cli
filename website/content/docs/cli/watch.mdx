@@ -35,7 +35,7 @@ import { BellRing, Cable, ShieldAlert, Webhook } from 'lucide-react';
 ## Usage
 
 ```bash
-openkakao-rs watch [OPTIONS]
+openkakao-cli watch [OPTIONS]
 ```
 
 ## Options
@@ -96,19 +96,19 @@ By default, remote webhooks must use HTTPS. Plain HTTP is only accepted for loca
 
 ```bash
 # Watch all chats
-openkakao-rs watch
+openkakao-cli watch
 
 # Watch specific chat with read receipts
-openkakao-rs --unattended --allow-watch-side-effects watch --chat-id 900000000000001 --read-receipt
+openkakao-cli --unattended --allow-watch-side-effects watch --chat-id 900000000000001 --read-receipt
 
 # Auto-download media
-openkakao-rs watch --download-media --download-dir ./media
+openkakao-cli watch --download-media --download-dir ./media
 
 # Maximum reliability
-openkakao-rs --unattended --allow-watch-side-effects watch --max-reconnect 20 --read-receipt --download-media
+openkakao-cli --unattended --allow-watch-side-effects watch --max-reconnect 20 --read-receipt --download-media
 
 # Trigger a local command when "urgent" arrives in one chat
-openkakao-rs watch \
+openkakao-cli watch \
   --unattended \
   --allow-watch-side-effects \
   --chat-id 900000000000001 \
@@ -116,7 +116,7 @@ openkakao-rs watch \
   --hook-keyword urgent
 
 # Deliver matched events to a webhook
-openkakao-rs watch \
+openkakao-cli watch \
   --unattended \
   --allow-watch-side-effects \
   --webhook-url https://example.com/openkakao \
@@ -157,7 +157,7 @@ This file records the last processed logId per chat, allowing `--resume` to pick
 Use `--resume` for long-running or restarted watch processes:
 
 ```bash
-openkakao-rs watch --resume
+openkakao-cli watch --resume
 ```
 
 Recovery behavior:
@@ -246,7 +246,7 @@ Environment variables are also provided:
 Example:
 
 ```bash
-openkakao-rs watch \
+openkakao-cli watch \
   --unattended \
   --allow-watch-side-effects \
   --hook-cmd 'jq . > /tmp/openkakao-event.json' \
@@ -257,7 +257,7 @@ openkakao-rs watch \
 Webhook example:
 
 ```bash
-openkakao-rs watch \
+openkakao-cli watch \
   --unattended \
   --allow-watch-side-effects \
   --webhook-url https://hooks.example.com/openkakao \

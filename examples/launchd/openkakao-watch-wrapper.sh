@@ -7,7 +7,7 @@ export PATH
 LOG_DIR="${HOME}/Library/Logs/openkakao"
 mkdir -p "${LOG_DIR}"
 
-exec /opt/homebrew/bin/openkakao-rs \
+exec /opt/homebrew/bin/openkakao-cli \
   --unattended \
   --allow-watch-side-effects \
   watch \

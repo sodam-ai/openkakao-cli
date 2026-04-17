@@ -1,16 +1,16 @@
 [package]
-name = "openkakao-rs"
+name = "openkakao-cli"
 version = "1.1.1"
 edition = "2021"
 description = "Rust CLI client for KakaoTalk macOS cached APIs"
 license = "MIT"
 
 [[bin]]
-name = "openkakao-rs"
+name = "openkakao-cli"
 path = "src/main.rs"
 
 [lib]
-name = "openkakao_rs"
+name = "openkakao_cli"
 path = "src/lib.rs"
 
 [dependencies]

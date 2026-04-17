@@ -9,7 +9,7 @@ body:
     attributes:
       label: Question
       description: What do you want to ask?
-      placeholder: Is there a plan to support message sending in openkakao-rs?
+      placeholder: Is there a plan to support message sending in openkakao-cli?
     validations:
       required: true
   - type: textarea

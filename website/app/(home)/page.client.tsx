@@ -33,7 +33,7 @@ export function Hero() {
 }
 
 export function CreateWorkflowAnimation(props: HTMLAttributes<HTMLDivElement>) {
-  const command = 'openkakao-rs login --save';
+  const command = 'openkakao-cli login --save';
   const tickTime = 100;
   const timeCommandEnter = command.length;
   const timeCommandRun = timeCommandEnter + 3;
@@ -202,9 +202,9 @@ function HeroPreviewPanel() {
           <div className="mt-5 rounded-xl border border-white/10 bg-white/5 p-4">
             <div className="mb-2 text-xs font-medium uppercase tracking-wide text-white/50">Terminal</div>
             <pre className="overflow-x-auto font-mono text-sm text-white/80">
-              <code>{`brew install openkakao-rs
-openkakao-rs login --save
-openkakao-rs loco-read <chat_id> -n 20 --json`}</code>
+              <code>{`brew install openkakao-cli
+openkakao-cli login --save
+openkakao-cli loco-read <chat_id> -n 20 --json`}</code>
             </pre>
           </div>
         </div>
@@ -362,7 +362,7 @@ function HistorySurface() {
               <Terminal className="size-4" />
               Query surface
             </div>
-            <pre className="rounded-lg border border-white/8 bg-white/4 p-3 font-mono text-xs text-white/75">{`openkakao-rs export \\
+            <pre className="rounded-lg border border-white/8 bg-white/4 p-3 font-mono text-xs text-white/75">{`openkakao-cli export \\
   --chat-id 900000000000001 \\
   --format json \\
   --limit 50 > messages.json
@@ -407,7 +407,7 @@ function AutomationSurface() {
               <Terminal className="size-4" />
               Hook example
             </div>
-            <pre className="rounded-lg border border-white/8 bg-white/4 p-3 font-mono text-xs text-white/75">{`openkakao-rs --unattended \\
+            <pre className="rounded-lg border border-white/8 bg-white/4 p-3 font-mono text-xs text-white/75">{`openkakao-cli --unattended \\
   --allow-watch-side-effects \\
   watch \\
   --hook-chat-id 900000000000001 \\

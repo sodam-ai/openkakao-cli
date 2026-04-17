@@ -1,6 +1,6 @@
 # AI Agent Integration Guide
 
-openkakao-rs is designed for AI agent integration. All commands support `--json` for structured output.
+openkakao-cli is designed for AI agent integration. All commands support `--json` for structured output.
 
 ## Safety Model
 
@@ -10,24 +10,24 @@ LOCO write operations (send, delete, edit, react) are **disabled by default** to
 
 ```bash
 # Read chats from local KakaoTalk database (SQLCipher, no network)
-openkakao-rs local-chats --json
-openkakao-rs local-read <chat_id> -n 30 --json
-openkakao-rs local-search "keyword" --json
-openkakao-rs local-schema
+openkakao-cli local-chats --json
+openkakao-cli local-read <chat_id> -n 30 --json
+openkakao-cli local-search "keyword" --json
+openkakao-cli local-schema
 
 # Preview actions without executing
-openkakao-rs send 123 "message" --dry-run --json
-openkakao-rs delete 123 456 --dry-run --json
+openkakao-cli send 123 "message" --dry-run --json
+openkakao-cli delete 123 456 --dry-run --json
 ```
 
 ### Safe commands (REST API, lower risk)
 
 ```bash
-openkakao-rs chats --json
-openkakao-rs read <chat_id> --rest --json
-openkakao-rs friends --json
-openkakao-rs me --json
-openkakao-rs doctor --json
+openkakao-cli chats --json
+openkakao-cli read <chat_id> --rest --json
+openkakao-cli friends --json
+openkakao-cli me --json
+openkakao-cli doctor --json
 ```
 
 ### Risky commands (require opt-in)
@@ -35,11 +35,11 @@ openkakao-rs doctor --json
 These require `allow_loco_write = true` in `~/.config/openkakao/config.toml`:
 
 ```bash
-openkakao-rs send <chat_id> "message" -y --json
-openkakao-rs send --me "test" -y --json    # Send to memo chat
-openkakao-rs delete <chat_id> <log_id> -y --json
-openkakao-rs edit <chat_id> <log_id> "new" -y --json
-openkakao-rs react <chat_id> <log_id> --json
+openkakao-cli send <chat_id> "message" -y --json
+openkakao-cli send --me "test" -y --json    # Send to memo chat
+openkakao-cli delete <chat_id> <log_id> -y --json
+openkakao-cli edit <chat_id> <log_id> "new" -y --json
+openkakao-cli react <chat_id> <log_id> --json
 ```
 
 ## Unattended Mode
@@ -47,7 +47,7 @@ openkakao-rs react <chat_id> <log_id> --json
 For fully non-interactive operation:
 
 ```bash
-openkakao-rs --unattended --allow-non-interactive-send send <chat_id> "msg" -y --json
+openkakao-cli --unattended --allow-non-interactive-send send <chat_id> "msg" -y --json
 ```
 
 Or configure in `~/.config/openkakao/config.toml`:
@@ -77,21 +77,21 @@ All commands with `--json` return structured JSON to stdout. Diagnostic messages
 
 ```bash
 # List chats
-openkakao-rs local-chats --json
+openkakao-cli local-chats --json
 # Returns: [{"chat_id": 123, "chat_type": 0, "chat_name": "...", ...}]
 
 # Read messages
-openkakao-rs local-read 123 --json
+openkakao-cli local-read 123 --json
 # Returns: [{"log_id": 456, "chat_id": 123, "sender_name": "...", "message": "...", ...}]
 
 # Dry-run
-openkakao-rs send 123 "hello" --dry-run --json
+openkakao-cli send 123 "hello" --dry-run --json
 # Returns: {"dry_run": true, "action": "send", "chat_id": 123, "message": "..."}
 ```
 
 ## Diagnostics
 
 ```bash
-openkakao-rs doctor --json        # Check installation, credentials, local DB access
-openkakao-rs auth-status --json   # Check auth recovery state
+openkakao-cli doctor --json        # Check installation, credentials, local DB access
+openkakao-cli auth-status --json   # Check auth recovery state
 ```

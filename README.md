@@ -2,7 +2,7 @@
   <h1>OpenKakao</h1>
   <p>macOS용 카카오톡 데스크탑 앱을 위한 비공식 CLI입니다.</p>
   <p>터미널에서 직접 쓰기 좋고, JSON 출력, watch, hook, webhook 흐름으로 AI나 agent가 호출하기에도 적합합니다.</p>
-  <p>실행 바이너리는 <code>openkakao-rs</code>입니다.</p>
+  <p>실행 바이너리는 <code>openkakao-cli</code>입니다.</p>
 </div>
 
 <p align="center">
@@ -13,7 +13,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/JungHoonGhae/openkakao/stargazers"><img src="https://img.shields.io/github/stars/JungHoonGhae/openkakao" alt="GitHub stars" /></a>
+  <a href="https://github.com/JungHoonGhae/openkakao-cli/stargazers"><img src="https://img.shields.io/github/stars/JungHoonGhae/openkakao-cli" alt="GitHub stars" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License" /></a>
   <a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/Rust-1.75+-orange.svg" alt="Rust" /></a>
   <a href="https://openkakao.vercel.app/"><img src="https://img.shields.io/badge/status-v1.0.0%20stable-brightgreen" alt="Status Stable" /></a>
@@ -44,15 +44,15 @@
 <p align="center">
   <a href="https://www.star-history.com/?repos=JungHoonGhae%2Fopenkakao&type=date&legend=top-left">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/image?repos=JungHoonGhae/openkakao&type=date&theme=dark&legend=top-left" />
-      <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/image?repos=JungHoonGhae/openkakao&type=date&legend=top-left" />
-      <img alt="Star History Chart" src="https://api.star-history.com/image?repos=JungHoonGhae/openkakao&type=date&legend=top-left" width="600" />
+      <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/image?repos=JungHoonGhae/openkakao-cli&type=date&theme=dark&legend=top-left" />
+      <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/image?repos=JungHoonGhae/openkakao-cli&type=date&legend=top-left" />
+      <img alt="Star History Chart" src="https://api.star-history.com/image?repos=JungHoonGhae/openkakao-cli&type=date&legend=top-left" width="600" />
     </picture>
   </a>
 </p>
 
 <p align="center">
-  <img src="openkakao-rs/assets/thumbnail-ko.png" alt="openkakao" width="720" />
+  <img src="openkakao-cli/assets/thumbnail-ko.png" alt="openkakao" width="720" />
 </p>
 
 ## Quick Start
@@ -62,52 +62,52 @@
 ```bash
 # Homebrew
 brew tap JungHoonGhae/openkakao
-brew install openkakao-rs
+brew install openkakao-cli
 
 # 1. 인증 정보 저장
-openkakao-rs login --save
+openkakao-cli login --save
 
 # 2. 채팅방 목록
-openkakao-rs chats
+openkakao-cli chats
 
 # 3. 메시지 읽기
-openkakao-rs read <chat_id> -n 20
+openkakao-cli read <chat_id> -n 20
 
 # 4. 메시지 보내기 (LOCO write — opt-in 필요: safety.allow_loco_write = true)
-openkakao-rs send <chat_id> "Hello from CLI!"
+openkakao-cli send <chat_id> "Hello from CLI!"
 
 # 안전한 로컬 읽기 대안 (서버 통신 없음)
-openkakao-rs local-chats
-openkakao-rs local-read <chat_id>
+openkakao-cli local-chats
+openkakao-cli local-read <chat_id>
 ```
 
 필요할 때만 예전 cache-backed 경로를 강제합니다.
 
 ```bash
-openkakao-rs chats --rest
-openkakao-rs read <chat_id> --rest
-openkakao-rs members <chat_id> --rest
+openkakao-cli chats --rest
+openkakao-cli read <chat_id> --rest
+openkakao-cli members <chat_id> --rest
 ```
 
 ### For Agent
 
 ```bash
 # 안전한 로컬 DB 읽기 (서버 통신 없음)
-openkakao-rs local-chats --json
-openkakao-rs local-read <chat_id> --json
+openkakao-cli local-chats --json
+openkakao-cli local-read <chat_id> --json
 
 # 실행 전 미리보기
-openkakao-rs send <chat_id> "message" --dry-run --json
+openkakao-cli send <chat_id> "message" --dry-run --json
 
 # 구조화된 출력
-openkakao-rs --json chats
-openkakao-rs --json read <chat_id> -n 20
+openkakao-cli --json chats
+openkakao-cli --json read <chat_id> -n 20
 
 # 실시간 이벤트 감시
-openkakao-rs watch --json
+openkakao-cli watch --json
 
 # 로컬 hook 또는 webhook 흐름으로 연결
-openkakao-rs --unattended --allow-watch-side-effects watch \
+openkakao-cli --unattended --allow-watch-side-effects watch \
   --hook-cmd 'jq . > /tmp/openkakao-event.json'
 ```
 
@@ -172,14 +172,14 @@ allow_loco_write = true
 
 ```bash
 brew tap JungHoonGhae/openkakao
-brew install openkakao-rs
+brew install openkakao-cli
 ```
 
 ### From source
 
 ```bash
-git clone https://github.com/JungHoonGhae/openkakao.git
-cd openkakao/openkakao-rs
+git clone https://github.com/JungHoonGhae/openkakao-cli.git
+cd openkakao/openkakao-cli
 cargo install --path .
 ```
 
@@ -196,9 +196,9 @@ cargo install --path .
 Reverse engineering / local app-state diff:
 
 ```bash
-openkakao-rs profile-hints --local-graph --json
-openkakao-rs profile-hints --app-state --json > /tmp/profile-before.json
-openkakao-rs profile-hints --app-state --app-state-diff /tmp/profile-before.json --json
+openkakao-cli profile-hints --local-graph --json
+openkakao-cli profile-hints --app-state --json > /tmp/profile-before.json
+openkakao-cli profile-hints --app-state --app-state-diff /tmp/profile-before.json --json
 ```
 
 ## Claude Code Skill
@@ -210,7 +210,7 @@ npx skills add JungHoonGhae/skills@openkakao-cli
 ## 개발
 
 ```bash
-cd openkakao-rs
+cd openkakao-cli
 cargo build --release
 ```
 

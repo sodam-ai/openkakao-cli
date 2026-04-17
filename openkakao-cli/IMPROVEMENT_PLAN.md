@@ -7,7 +7,7 @@ a full codebase audit, and review of public LOCO protocol implementations.
 
 ## 1. Blog Post Key Takeaways
 
-| Finding | Detail | Impact on openkakao-rs |
+| Finding | Detail | Impact on openkakao-cli |
 |---------|--------|----------------------|
 | **RSA key rotated** | `0xF3188...` (node-kakao era) -> `0xA3B076...` (current) | Our key matches current (`A3B076...`) - OK |
 | **Handshake type 12 -> 16** | `key_type` field in handshake packet | We use 16 - OK. KiwiTalk/loco-protocol-rs uses **15** - differs! |
@@ -106,7 +106,7 @@ loco-wrapper LOGINLIST:                 Ours (current):
 A diagnostic command that checks environment health without making any changes:
 
 ```
-openkakao-rs doctor
+openkakao-cli doctor
 ```
 
 Output:
@@ -175,17 +175,17 @@ SYNCMSG scans **forward** from `cur` (exclusive) to `max` (inclusive), returning
 
 ```
 # REST (read) - limited to pilsner cache
-openkakao-rs read <chat_id> --all              # Fetch all cached messages
-openkakao-rs read <chat_id> --cursor <logId>   # Resume from logId
-openkakao-rs read <chat_id> --since 2025-01-01 # Filter by date
-openkakao-rs read <chat_id> -n 50              # Last N messages
+openkakao-cli read <chat_id> --all              # Fetch all cached messages
+openkakao-cli read <chat_id> --cursor <logId>   # Resume from logId
+openkakao-cli read <chat_id> --since 2025-01-01 # Filter by date
+openkakao-cli read <chat_id> -n 50              # Last N messages
 
 # LOCO (loco-read) - full history when LOCO works
-openkakao-rs loco-read <chat_id> --all                     # Full history
-openkakao-rs loco-read <chat_id> --all --cursor <logId>    # Resume from logId
-openkakao-rs loco-read <chat_id> --all --since 2024-06-01  # Filter by date
-openkakao-rs loco-read <chat_id> --all --delay-ms 200      # Slower rate limit
-openkakao-rs loco-read <chat_id> -n 100                    # Last N messages
+openkakao-cli loco-read <chat_id> --all                     # Full history
+openkakao-cli loco-read <chat_id> --all --cursor <logId>    # Resume from logId
+openkakao-cli loco-read <chat_id> --all --since 2024-06-01  # Filter by date
+openkakao-cli loco-read <chat_id> --all --delay-ms 200      # Slower rate limit
+openkakao-cli loco-read <chat_id> -n 100                    # Last N messages
 ```
 
 #### Resumable fetch strategy
@@ -193,7 +193,7 @@ openkakao-rs loco-read <chat_id> -n 100                    # Last N messages
 On disconnect or error during `--all`, the CLI prints:
 ```
 [loco-read] Connection lost: ...
-[loco-read] Resume with: openkakao-rs loco-read <chat_id> --all --cursor <last_logId>
+[loco-read] Resume with: openkakao-cli loco-read <chat_id> --all --cursor <last_logId>
 ```
 This allows resuming from the last successful batch without re-fetching.
 

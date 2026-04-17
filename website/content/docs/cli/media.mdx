@@ -6,7 +6,7 @@ description: Download media attachments from messages.
 ## Usage
 
 ```bash
-openkakao-rs download <chat_id> <log_id> [OPTIONS]
+openkakao-cli download <chat_id> <log_id> [OPTIONS]
 ```
 
 ## Options
@@ -19,10 +19,10 @@ openkakao-rs download <chat_id> <log_id> [OPTIONS]
 
 ```bash
 # Download media from a specific message
-openkakao-rs download 900000000000001 9000000000000000001
+openkakao-cli download 900000000000001 9000000000000000001
 
 # Custom directory
-openkakao-rs download 900000000000001 9000000000000000001 -o ./media
+openkakao-cli download 900000000000001 9000000000000000001 -o ./media
 ```
 
 Files are saved as `{output_dir}/{chat_id}/{log_id}_{filename}`.
@@ -32,7 +32,7 @@ Files are saved as `{output_dir}/{chat_id}/{log_id}_{filename}`.
 The `log_id` is shown in JSON output:
 
 ```bash
-openkakao-rs read <chat_id> --json | jq '.[] | select(.type != 1) | {logId, type, message}'
+openkakao-cli read <chat_id> --json | jq '.[] | select(.type != 1) | {logId, type, message}'
 ```
 
 ## Auto-Download
@@ -40,7 +40,7 @@ openkakao-rs read <chat_id> --json | jq '.[] | select(.type != 1) | {logId, type
 For automatic media download, use the `watch` command:
 
 ```bash
-openkakao-rs watch --download-media --download-dir ./media
+openkakao-cli watch --download-media --download-dir ./media
 ```
 
 See [watch](/docs/cli/watch) for details.

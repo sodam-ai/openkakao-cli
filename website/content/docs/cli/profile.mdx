@@ -8,7 +8,7 @@ description: Profile and account information.
 Show your profile.
 
 ```bash
-openkakao-rs me [--json]
+openkakao-cli me [--json]
 ```
 
 `me` prefers the REST account profile path, but if that fails it now falls back to the local LOCO friend graph built from known chats.
@@ -20,9 +20,9 @@ openkakao-rs me [--json]
 Show a friend's profile.
 
 ```bash
-openkakao-rs profile <user_id> [--json]
-openkakao-rs profile <user_id> --chat-id <chat_id>
-openkakao-rs profile <user_id> --local
+openkakao-cli profile <user_id> [--json]
+openkakao-cli profile <user_id> --chat-id <chat_id>
+openkakao-cli profile <user_id> --local
 ```
 
 Behavior:
@@ -38,7 +38,7 @@ Behavior:
 List multi-profiles.
 
 ```bash
-openkakao-rs profiles [--json]
+openkakao-cli profiles [--json]
 ```
 
 ---
@@ -48,7 +48,7 @@ openkakao-rs profiles [--json]
 Show account settings.
 
 ```bash
-openkakao-rs settings [--json]
+openkakao-cli settings [--json]
 ```
 
 ---
@@ -58,5 +58,5 @@ openkakao-rs settings [--json]
 Show notification keywords.
 
 ```bash
-openkakao-rs keywords [--json]
+openkakao-cli keywords [--json]
 ```

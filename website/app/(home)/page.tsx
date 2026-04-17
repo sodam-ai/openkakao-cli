@@ -159,9 +159,9 @@ function InstallCta() {
             </div>
             <div className="font-mono text-lg text-white/90 md:text-[28px] md:leading-[1.4]">
               <span className="text-white/50">brew install </span>
-              <span>openkakao-rs</span>
+              <span>openkakao-cli</span>
             </div>
-            <div className="mt-3 font-mono text-sm text-white/55 md:text-base">openkakao-rs login --save</div>
+            <div className="mt-3 font-mono text-sm text-white/55 md:text-base">openkakao-cli login --save</div>
             <div className="mt-10 grid gap-2 text-sm text-white/55">
               <div>Reading local KakaoTalk state...</div>
               <div>Validating account session...</div>
@@ -219,7 +219,7 @@ function Aesthetics() {
         <p className="mb-4">Move from guides to command reference to trust boundary without leaving the same shell.</p>
         <p className="mb-4">The structure follows official Fumadocs patterns, but the workflow model is now fully OpenKakao.</p>
         <CodeBlock
-          code={'openkakao-rs loco-chats\nopenkakao-rs loco-read <chat_id> -n 20 --json\nopenkakao-rs watch --chat-id <chat_id>'}
+          code={'openkakao-cli loco-chats\nopenkakao-cli loco-read <chat_id> -n 20 --json\nopenkakao-cli watch --chat-id <chat_id>'}
           lang="bash"
           className="my-0"
         />
@@ -235,7 +235,7 @@ function AnybodyCanWrite() {
         operator: (
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
             <CodeBlock
-              code={'openkakao-rs unread --json\nopenkakao-rs loco-read <chat_id> -n 50 --json | jq .'}
+              code={'openkakao-cli unread --json\nopenkakao-cli loco-read <chat_id> -n 50 --json | jq .'}
               lang="bash"
             />
             <div className="max-lg:row-start-1">
@@ -255,7 +255,7 @@ function AnybodyCanWrite() {
         developer: (
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
             <CodeBlock
-              code={'openkakao-rs watch --hook-cmd ./handle-event.sh\nopenkakao-rs watch --webhook-url https://hooks.example.com/openkakao'}
+              code={'openkakao-cli watch --hook-cmd ./handle-event.sh\nopenkakao-cli watch --webhook-url https://hooks.example.com/openkakao'}
               lang="bash"
             />
             <div className="max-lg:row-start-1">
@@ -324,7 +324,7 @@ function StoryCard() {
             ))}
           </div>
           <div className="mt-4 rounded-lg border border-white/10 bg-black/30 px-3 py-2 font-mono text-xs text-white/65">
-            openkakao-rs auth-status --json
+            openkakao-cli auth-status --json
           </div>
         </div>
 
@@ -427,7 +427,7 @@ function ForEngineers() {
           ))}
         </div>
         <CodeBlock
-          code={`openkakao-rs loco-read <chat_id> --all --json > history.json
+          code={`openkakao-cli loco-read <chat_id> --all --json > history.json
 jq '.[] | {author, message}' history.json
 sqlite3 chat.db '.import history.json messages'`}
           lang="bash"
@@ -455,9 +455,9 @@ sqlite3 chat.db '.import history.json messages'`}
           <div className="border-b px-4 py-2 font-medium text-neutral-500 dark:text-neutral-400">
             CLI
           </div>
-          <pre className="overflow-auto p-4 text-base text-neutral-800 dark:text-neutral-400">{`openkakao-rs unread --json
-openkakao-rs watch --hook-cmd ./handle-event.sh
-openkakao-rs send <chat_id> "done"`}</pre>
+          <pre className="overflow-auto p-4 text-base text-neutral-800 dark:text-neutral-400">{`openkakao-cli unread --json
+openkakao-cli watch --hook-cmd ./handle-event.sh
+openkakao-cli send <chat_id> "done"`}</pre>
         </div>
       </div>
 
@@ -638,7 +638,7 @@ function OpenSource() {
             Read docs
           </Link>
           <a
-            href="https://github.com/JungHoonGhae/openkakao"
+            href="https://github.com/JungHoonGhae/openkakao-cli"
             rel="noreferrer noopener"
             className={cn(buttonVariants({ variant: 'secondary' }))}
           >

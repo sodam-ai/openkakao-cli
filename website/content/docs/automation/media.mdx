@@ -7,10 +7,10 @@ description: Download photos, videos, and files from chat messages.
 
 ```bash
 # Download attachment from a message
-openkakao-rs download <chat_id> <log_id>
+openkakao-cli download <chat_id> <log_id>
 
 # Custom output directory
-openkakao-rs download <chat_id> <log_id> -o ./media
+openkakao-cli download <chat_id> <log_id> -o ./media
 ```
 
 The `log_id` can be found in message output or JSON export.
@@ -20,7 +20,7 @@ The `log_id` can be found in message output or JSON export.
 Download media automatically as messages arrive:
 
 ```bash
-openkakao-rs watch --download-media --download-dir ./media
+openkakao-cli watch --download-media --download-dir ./media
 ```
 
 ## Supported Media Types

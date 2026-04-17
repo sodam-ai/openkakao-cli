@@ -1,9 +1,9 @@
 blank_issues_enabled: false
 contact_links:
   - name: Security report
-    url: https://github.com/JungHoonGhae/openkakao/security/advisories/new
+    url: https://github.com/JungHoonGhae/openkakao-cli/security/advisories/new
     about: Please report security vulnerabilities privately.
   - name: Discussions
-    url: https://github.com/JungHoonGhae/openkakao/discussions
+    url: https://github.com/JungHoonGhae/openkakao-cli/discussions
     about: Use Discussions for broad questions and ideas.
 

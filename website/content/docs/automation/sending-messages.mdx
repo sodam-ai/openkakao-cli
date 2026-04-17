@@ -7,10 +7,10 @@ description: Send text, photos, videos, and files via LOCO protocol.
 
 ```bash
 # With confirmation prompt
-openkakao-rs send <chat_id> "Hello!"
+openkakao-cli send <chat_id> "Hello!"
 
 # Skip confirmation
-openkakao-rs send <chat_id> "Hello!" -y
+openkakao-cli send <chat_id> "Hello!" -y
 ```
 
 > [!NOTE]
@@ -18,15 +18,15 @@ openkakao-rs send <chat_id> "Hello!" -y
 
 ```bash
 # Without prefix
-openkakao-rs --no-prefix send <chat_id> "Hello!" -y
+openkakao-cli --no-prefix send <chat_id> "Hello!" -y
 ```
 
 ## Photos
 
 ```bash
-openkakao-rs send-photo <chat_id> photo.jpg -y
+openkakao-cli send-photo <chat_id> photo.jpg -y
 # or
-openkakao-rs send-file <chat_id> photo.jpg -y
+openkakao-cli send-file <chat_id> photo.jpg -y
 ```
 
 Supported formats: JPEG, PNG, GIF. The CLI auto-detects the image type from magic bytes and extracts dimensions for the thumbnail metadata.
@@ -34,7 +34,7 @@ Supported formats: JPEG, PNG, GIF. The CLI auto-detects the image type from magi
 ## Videos
 
 ```bash
-openkakao-rs send-file <chat_id> video.mp4 -y
+openkakao-cli send-file <chat_id> video.mp4 -y
 ```
 
 Supported formats: MP4, MOV, WebM.
@@ -42,7 +42,7 @@ Supported formats: MP4, MOV, WebM.
 ## Files
 
 ```bash
-openkakao-rs send-file <chat_id> document.pdf -y
+openkakao-cli send-file <chat_id> document.pdf -y
 ```
 
 Any file type is supported. The CLI detects media types automatically and falls back to generic file upload.
@@ -59,7 +59,7 @@ Media upload uses the LOCO SHIP+POST protocol:
 <Mermaid
   chart={`
 sequenceDiagram
-    participant CLI as openkakao-rs
+    participant CLI as openkakao-cli
     participant LOCO as LOCO Server
     participant CDN as Upload Server (Kage CDN)
 
@@ -78,9 +78,9 @@ Sending to open chats (public chat rooms) has a higher risk of account restricti
 
 ```bash
 # This will be blocked
-openkakao-rs send <open_chat_id> "message" -y
+openkakao-cli send <open_chat_id> "message" -y
 # Error: Open chat send blocked (use --force to override)
 
 # Override with --force
-openkakao-rs send <open_chat_id> "message" -y --force
+openkakao-cli send <open_chat_id> "message" -y --force
 ```

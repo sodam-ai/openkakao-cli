@@ -1,4 +1,4 @@
-use openkakao_rs::message_db::{CachedMessage, MessageDb};
+use openkakao_cli::message_db::{CachedMessage, MessageDb};
 
 fn test_msg(chat_id: i64, log_id: i64, author: &str, msg: &str, send_at: i64) -> CachedMessage {
     CachedMessage {

@@ -30,7 +30,7 @@ use crate::config::load_config;
 use crate::util::{format_outgoing_message, NO_COLOR, VERSION};
 
 #[derive(Parser, Debug)]
-#[command(name = "openkakao-rs")]
+#[command(name = "openkakao-cli")]
 #[command(about = "OpenKakao Rust CLI", long_about = None)]
 #[command(version = VERSION)]
 struct Cli {
@@ -641,7 +641,7 @@ fn main() -> Result<()> {
             generate(
                 shell,
                 &mut Cli::command(),
-                "openkakao-rs",
+                "openkakao-cli",
                 &mut io::stdout(),
             );
         }
@@ -1183,7 +1183,7 @@ mod tests {
     #[test]
     fn send_accepts_global_and_local_flags_after_subcommand() {
         let cli = Cli::try_parse_from([
-            "openkakao-rs",
+            "openkakao-cli",
             "--unattended",
             "--allow-non-interactive-send",
             "send",
@@ -1217,7 +1217,7 @@ mod tests {
     #[test]
     fn unattended_flag_is_available_globally() {
         let cli = Cli::try_parse_from([
-            "openkakao-rs",
+            "openkakao-cli",
             "--unattended",
             "--allow-watch-side-effects",
             "watch",
@@ -1288,7 +1288,7 @@ mod tests {
     #[test]
     fn watch_accepts_hook_flags() {
         let cli = Cli::try_parse_from([
-            "openkakao-rs",
+            "openkakao-cli",
             "--unattended",
             "--allow-watch-side-effects",
             "watch",
@@ -1346,7 +1346,7 @@ mod tests {
     #[test]
     fn read_accepts_transport_flags() {
         let cli = Cli::try_parse_from([
-            "openkakao-rs",
+            "openkakao-cli",
             "read",
             "123",
             "--rest",
@@ -1375,7 +1375,7 @@ mod tests {
 
     #[test]
     fn chats_accepts_rest_flag() {
-        let cli = Cli::try_parse_from(["openkakao-rs", "chats", "--rest", "--unread"])
+        let cli = Cli::try_parse_from(["openkakao-cli", "chats", "--rest", "--unread"])
             .expect("chats should accept --rest");
 
         match cli.command {
@@ -1389,7 +1389,7 @@ mod tests {
 
     #[test]
     fn members_accepts_rest_flag() {
-        let cli = Cli::try_parse_from(["openkakao-rs", "members", "123", "--rest", "--full"])
+        let cli = Cli::try_parse_from(["openkakao-cli", "members", "123", "--rest", "--full"])
             .expect("members should accept --rest and --full");
 
         match cli.command {
@@ -1409,7 +1409,7 @@ mod tests {
     #[test]
     fn profile_accepts_chat_id_flag() {
         let cli = Cli::try_parse_from([
-            "openkakao-rs",
+            "openkakao-cli",
             "profile",
             "100000002",
             "--chat-id",
@@ -1434,7 +1434,7 @@ mod tests {
     #[test]
     fn friends_accepts_local_flag() {
         let cli = Cli::try_parse_from([
-            "openkakao-rs",
+            "openkakao-cli",
             "friends",
             "--local",
             "-s",
@@ -1468,7 +1468,7 @@ mod tests {
 
     #[test]
     fn profile_accepts_local_flag() {
-        let cli = Cli::try_parse_from(["openkakao-rs", "profile", "100000002", "--local"])
+        let cli = Cli::try_parse_from(["openkakao-cli", "profile", "100000002", "--local"])
             .expect("profile should accept --local");
 
         match cli.command {
@@ -1487,7 +1487,7 @@ mod tests {
 
     #[test]
     fn chatinfo_command_is_available() {
-        let cli = Cli::try_parse_from(["openkakao-rs", "chatinfo", "123"])
+        let cli = Cli::try_parse_from(["openkakao-cli", "chatinfo", "123"])
             .expect("chatinfo should be available");
 
         match cli.command {
@@ -1499,7 +1499,7 @@ mod tests {
     #[test]
     fn probe_command_is_available() {
         let cli = Cli::try_parse_from([
-            "openkakao-rs",
+            "openkakao-cli",
             "probe",
             "BLSYNC",
             "--body",
@@ -1519,7 +1519,7 @@ mod tests {
     #[test]
     fn profile_hints_command_is_available() {
         let cli = Cli::try_parse_from([
-            "openkakao-rs",
+            "openkakao-cli",
             "profile-hints",
             "--local-graph",
             "--user-id",
@@ -1552,7 +1552,7 @@ mod tests {
     #[test]
     fn profile_hints_accepts_app_state_diff() {
         let cli = Cli::try_parse_from([
-            "openkakao-rs",
+            "openkakao-cli",
             "profile-hints",
             "--app-state",
             "--app-state-diff",
@@ -1817,7 +1817,7 @@ mod tests {
 
     #[test]
     fn legacy_loco_read_remains_available() {
-        let cli = Cli::try_parse_from(["openkakao-rs", "loco-read", "123", "--all"])
+        let cli = Cli::try_parse_from(["openkakao-cli", "loco-read", "123", "--all"])
             .expect("legacy loco-read should remain available");
 
         match cli.command {
@@ -1831,7 +1831,7 @@ mod tests {
 
     #[test]
     fn legacy_loco_chats_remains_available() {
-        let cli = Cli::try_parse_from(["openkakao-rs", "loco-chats", "--all"])
+        let cli = Cli::try_parse_from(["openkakao-cli", "loco-chats", "--all"])
             .expect("legacy loco-chats should remain available");
 
         match cli.command {
@@ -1844,7 +1844,7 @@ mod tests {
 
     #[test]
     fn legacy_loco_members_remains_available() {
-        let cli = Cli::try_parse_from(["openkakao-rs", "loco-members", "123"])
+        let cli = Cli::try_parse_from(["openkakao-cli", "loco-members", "123"])
             .expect("legacy loco-members should remain available");
 
         match cli.command {
@@ -1855,7 +1855,7 @@ mod tests {
 
     #[test]
     fn legacy_loco_chatinfo_remains_available() {
-        let cli = Cli::try_parse_from(["openkakao-rs", "loco-chatinfo", "123"])
+        let cli = Cli::try_parse_from(["openkakao-cli", "loco-chatinfo", "123"])
             .expect("legacy loco-chatinfo should remain available");
 
         match cli.command {
@@ -1866,7 +1866,7 @@ mod tests {
 
     #[test]
     fn legacy_loco_probe_remains_available() {
-        let cli = Cli::try_parse_from(["openkakao-rs", "loco-probe", "BLSYNC"])
+        let cli = Cli::try_parse_from(["openkakao-cli", "loco-probe", "BLSYNC"])
             .expect("legacy loco-probe should remain available");
 
         match cli.command {
@@ -1915,7 +1915,7 @@ mod tests {
     #[test]
     fn stats_command_is_available() {
         let cli = Cli::try_parse_from([
-            "openkakao-rs",
+            "openkakao-cli",
             "stats",
             "123",
             "--limit",
@@ -1993,7 +1993,7 @@ mod tests {
 
     #[test]
     fn watch_capture_flag_parses() {
-        let cli = Cli::try_parse_from(["openkakao-rs", "watch", "--capture"])
+        let cli = Cli::try_parse_from(["openkakao-cli", "watch", "--capture"])
             .expect("watch should accept --capture");
 
         match cli.command {
@@ -2006,7 +2006,7 @@ mod tests {
 
     #[test]
     fn probe_capture_pushes_flag_parses() {
-        let cli = Cli::try_parse_from(["openkakao-rs", "probe", "PING", "--capture-pushes"])
+        let cli = Cli::try_parse_from(["openkakao-cli", "probe", "PING", "--capture-pushes"])
             .expect("probe should accept --capture-pushes");
 
         match cli.command {
@@ -2024,7 +2024,7 @@ mod tests {
 
     #[test]
     fn delete_command_parses() {
-        let cli = Cli::try_parse_from(["openkakao-rs", "delete", "123", "456", "--force", "-y"])
+        let cli = Cli::try_parse_from(["openkakao-cli", "delete", "123", "456", "--force", "-y"])
             .expect("delete should parse");
         match cli.command {
             Commands::Delete {
@@ -2046,7 +2046,7 @@ mod tests {
 
     #[test]
     fn mark_read_command_parses() {
-        let cli = Cli::try_parse_from(["openkakao-rs", "mark-read", "123", "456"])
+        let cli = Cli::try_parse_from(["openkakao-cli", "mark-read", "123", "456"])
             .expect("mark-read should parse");
         match cli.command {
             Commands::MarkRead { chat_id, log_id } => {
@@ -2059,7 +2059,7 @@ mod tests {
 
     #[test]
     fn send_me_command_parses() {
-        let cli = Cli::try_parse_from(["openkakao-rs", "send-me", "test message"])
+        let cli = Cli::try_parse_from(["openkakao-cli", "send-me", "test message"])
             .expect("send-me should parse");
         match cli.command {
             Commands::SendMe { message, .. } => {
@@ -2071,7 +2071,7 @@ mod tests {
 
     #[test]
     fn send_accepts_dry_run_flag() {
-        let cli = Cli::try_parse_from(["openkakao-rs", "send", "123", "hello", "--dry-run"])
+        let cli = Cli::try_parse_from(["openkakao-cli", "send", "123", "hello", "--dry-run"])
             .expect("send --dry-run should parse");
         match cli.command {
             Commands::Send {
@@ -2086,7 +2086,7 @@ mod tests {
 
     #[test]
     fn delete_accepts_dry_run_flag() {
-        let cli = Cli::try_parse_from(["openkakao-rs", "delete", "123", "456", "--dry-run"])
+        let cli = Cli::try_parse_from(["openkakao-cli", "delete", "123", "456", "--dry-run"])
             .expect("delete --dry-run should parse");
         match cli.command {
             Commands::Delete {
@@ -2106,7 +2106,7 @@ mod tests {
     #[test]
     fn edit_accepts_dry_run_flag() {
         let cli = Cli::try_parse_from([
-            "openkakao-rs",
+            "openkakao-cli",
             "edit",
             "123",
             "456",
@@ -2133,7 +2133,7 @@ mod tests {
 
     #[test]
     fn react_accepts_dry_run_flag() {
-        let cli = Cli::try_parse_from(["openkakao-rs", "react", "123", "456", "--dry-run"])
+        let cli = Cli::try_parse_from(["openkakao-cli", "react", "123", "456", "--dry-run"])
             .expect("react --dry-run should parse");
         match cli.command {
             Commands::React {
@@ -2152,7 +2152,7 @@ mod tests {
 
     #[test]
     fn local_chats_command_parses() {
-        let cli = Cli::try_parse_from(["openkakao-rs", "local-chats", "-n", "10"])
+        let cli = Cli::try_parse_from(["openkakao-cli", "local-chats", "-n", "10"])
             .expect("local-chats should parse");
         match cli.command {
             Commands::LocalChats { limit } => assert_eq!(limit, 10),
@@ -2163,7 +2163,7 @@ mod tests {
     #[test]
     fn local_read_command_parses() {
         let cli = Cli::try_parse_from([
-            "openkakao-rs",
+            "openkakao-cli",
             "local-read",
             "123",
             "-n",
@@ -2188,7 +2188,7 @@ mod tests {
 
     #[test]
     fn local_search_command_parses() {
-        let cli = Cli::try_parse_from(["openkakao-rs", "local-search", "hello", "-n", "10"])
+        let cli = Cli::try_parse_from(["openkakao-cli", "local-search", "hello", "-n", "10"])
             .expect("local-search should parse");
         match cli.command {
             Commands::LocalSearch { query, count } => {
@@ -2201,7 +2201,7 @@ mod tests {
 
     #[test]
     fn local_schema_command_parses() {
-        Cli::try_parse_from(["openkakao-rs", "local-schema"]).expect("local-schema should parse");
+        Cli::try_parse_from(["openkakao-cli", "local-schema"]).expect("local-schema should parse");
     }
 
     #[test]

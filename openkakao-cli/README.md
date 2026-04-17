@@ -1,9 +1,9 @@
-# openkakao-rs
+# openkakao-cli
 
 Unofficial KakaoTalk CLI client for macOS. Full LOCO protocol and REST API access — send messages, read history, watch real-time, and automate your KakaoTalk from the terminal.
 
 <p align="center">
-  <img src="assets/thumbnail-ko.png" alt="openkakao-rs" width="600" />
+  <img src="assets/thumbnail-ko.png" alt="openkakao-cli" width="600" />
 </p>
 
 <p align="center">
@@ -28,29 +28,29 @@ Unofficial KakaoTalk CLI client for macOS. Full LOCO protocol and REST API acces
 ### Homebrew (recommended)
 
 ```bash
-brew install JungHoonGhae/openkakao/openkakao-rs
+brew install JungHoonGhae/openkakao/openkakao-cli
 ```
 
 ### Build from source
 
 ```bash
-git clone https://github.com/JungHoonGhae/openkakao
-cd openkakao/openkakao-rs
+git clone https://github.com/JungHoonGhae/openkakao-cli
+cd openkakao/openkakao-cli
 cargo build --release
-# Binary at: ./target/release/openkakao-rs
+# Binary at: ./target/release/openkakao-cli
 ```
 
 ## Setup
 
 ```bash
 # 1. Extract credentials from running KakaoTalk app
-openkakao-rs login --save
+openkakao-cli login --save
 
 # 2. Verify token
-openkakao-rs auth
+openkakao-cli auth
 
 # 3. Health check
-openkakao-rs doctor
+openkakao-cli doctor
 ```
 
 > KakaoTalk must be running and logged in for initial credential extraction.
@@ -214,7 +214,7 @@ src/
 ## Development
 
 ```bash
-cd openkakao-rs
+cd openkakao-cli
 cargo build
 cargo test
 cargo clippy -- -D warnings

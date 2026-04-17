@@ -21,7 +21,7 @@ Requirements:
 List chat rooms from the local database.
 
 ```bash
-openkakao-rs local-chats [OPTIONS]
+openkakao-cli local-chats [OPTIONS]
 ```
 
 | Flag | Description |
@@ -31,10 +31,10 @@ openkakao-rs local-chats [OPTIONS]
 
 ```bash
 # List recent chats
-openkakao-rs local-chats
+openkakao-cli local-chats
 
 # JSON output for agent consumption
-openkakao-rs local-chats --json
+openkakao-cli local-chats --json
 ```
 
 ---
@@ -44,7 +44,7 @@ openkakao-rs local-chats --json
 Read messages from a specific chat room.
 
 ```bash
-openkakao-rs local-read <chat_id> [OPTIONS]
+openkakao-cli local-read <chat_id> [OPTIONS]
 ```
 
 | Flag | Description |
@@ -55,13 +55,13 @@ openkakao-rs local-read <chat_id> [OPTIONS]
 
 ```bash
 # Read last 30 messages
-openkakao-rs local-read 900000000000001
+openkakao-cli local-read 900000000000001
 
 # Read messages since a date
-openkakao-rs local-read 900000000000001 --since 2025-01-01
+openkakao-cli local-read 900000000000001 --since 2025-01-01
 
 # JSON output
-openkakao-rs local-read 900000000000001 --json
+openkakao-cli local-read 900000000000001 --json
 ```
 
 <Callout type="warn" title="Local cache is limited">
@@ -75,7 +75,7 @@ openkakao-rs local-read 900000000000001 --json
 Search message text across all chats in the local database.
 
 ```bash
-openkakao-rs local-search <query> [OPTIONS]
+openkakao-cli local-search <query> [OPTIONS]
 ```
 
 | Flag | Description |
@@ -84,8 +84,8 @@ openkakao-rs local-search <query> [OPTIONS]
 | `--json` | Output as JSON (global flag) |
 
 ```bash
-openkakao-rs local-search "배포"
-openkakao-rs local-search "meeting" --json
+openkakao-cli local-search "배포"
+openkakao-cli local-search "meeting" --json
 ```
 
 ---
@@ -95,8 +95,8 @@ openkakao-rs local-search "meeting" --json
 Dump the table schema of the local KakaoTalk database. Useful for debugging and protocol research.
 
 ```bash
-openkakao-rs local-schema
-openkakao-rs local-schema --json
+openkakao-cli local-schema
+openkakao-cli local-schema --json
 ```
 
 ---
@@ -117,7 +117,7 @@ openkakao-rs local-schema --json
 Run `doctor` to check if the local database is accessible:
 
 ```bash
-openkakao-rs doctor --json
+openkakao-cli doctor --json
 ```
 
 The output includes a `Local DB (SQLCipher)` check that verifies UUID extraction, user ID, file existence, and decryption.

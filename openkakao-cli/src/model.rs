@@ -23,7 +23,7 @@ pub struct KakaoCredentials {
 }
 
 fn default_device_name() -> String {
-    "openkakao-rs".to_string()
+    "openkakao-cli".to_string()
 }
 
 impl KakaoCredentials {
@@ -39,7 +39,7 @@ impl KakaoCredentials {
             oauth_token,
             user_id,
             device_uuid,
-            device_name: "openkakao-rs".to_string(),
+            device_name: "openkakao-cli".to_string(),
             app_version,
             user_agent,
             a_header,
@@ -407,6 +407,6 @@ mod tests {
         let parsed: KakaoCredentials = serde_json::from_str(&json).unwrap();
         assert_eq!(parsed.oauth_token, "token123");
         assert_eq!(parsed.user_id, 42);
-        assert_eq!(parsed.device_name, "openkakao-rs");
+        assert_eq!(parsed.device_name, "openkakao-cli");
     }
 }

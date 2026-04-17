@@ -14,15 +14,33 @@ permissions:
   contents: write
 
 jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@master
+
+      - name: Cargo fmt
+        run: cargo fmt --manifest-path openkakao-rs/Cargo.toml --check
+
+      - name: Cargo clippy
+        run: cargo clippy --manifest-path openkakao-rs/Cargo.toml -- -D warnings
+
+      - name: Cargo test
+        run: cargo test --manifest-path openkakao-rs/Cargo.toml
+
   build-aarch64:
     runs-on: macos-14
+    needs: verify
     env:
       TARGET: aarch64-apple-darwin
     steps:
       - uses: actions/checkout@v4
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@master
 
       - name: Build
         run: cargo build --release --target "$TARGET" --manifest-path openkakao-rs/Cargo.toml
@@ -43,13 +61,14 @@ jobs:
 
   build-x86_64:
     runs-on: macos-15-intel
+    needs: verify
     env:
       TARGET: x86_64-apple-darwin
     steps:
       - uses: actions/checkout@v4
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@master
 
       - name: Build
         run: cargo build --release --target "$TARGET" --manifest-path openkakao-rs/Cargo.toml

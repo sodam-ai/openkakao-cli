@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-04-17
+
+### Fixed
+- Republished the v1.1.0 binaries under v1.1.1 after the `v1.1.0` tag was force-moved and a stale `Cargo.lock` caused the rebuild to fail, leaving the GitHub Release with no assets and breaking `brew install openkakao-rs` (#14)
+- `clippy::unnecessary_sort_by` violations in `analytics.rs` surfaced by clippy 1.95
+
+### Changed
+- Pinned the Rust toolchain to 1.95.0 via `rust-toolchain.toml` at the repo root so stable-channel upgrades cannot silently break the build
+- Switched CI from `dtolnay/rust-toolchain@stable` to `actions-rust-lang/setup-rust-toolchain@v1` so it honors `rust-toolchain.toml`
+- Release workflow now runs a `verify` job (`cargo fmt --check`, `cargo clippy -- -D warnings`, `cargo test`) before the build jobs — a red tree can no longer produce a tagged release
+
 ## [1.1.0] - 2026-03-30
 
 ### Added

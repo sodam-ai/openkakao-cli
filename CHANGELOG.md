@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-04-17
+
+### Changed
+- **BREAKING: Renamed the project from `openkakao-rs` to `openkakao-cli`** across the GitHub repo, the Cargo package, the installed binary, and the Homebrew formula. Source directory is now `openkakao-cli/`; workflows are `openkakao-cli-{ci,release}.yml`; the library crate is `openkakao_cli`. Old URLs (`github.com/JungHoonGhae/openkakao`) continue to redirect for now but should not be relied on long-term.
+- The Homebrew tap itself (`JungHoonGhae/homebrew-openkakao`) is unchanged; only the formula name moves.
+
+### Migration
+- Reinstall with `brew install JungHoonGhae/openkakao/openkakao-cli` (the old `openkakao-rs` formula is being removed).
+- Rename any scripts, launchd plists, or shell aliases that invoke `openkakao-rs` to `openkakao-cli`.
+- Configuration paths (`~/.config/openkakao/…`) are unchanged — no config migration needed.
+
 ## [1.1.1] - 2026-04-17
 
 ### Fixed

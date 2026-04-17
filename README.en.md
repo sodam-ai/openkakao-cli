@@ -52,7 +52,7 @@
 </p>
 
 <p align="center">
-  <img src="openkakao-cli/assets/thumbnail-en.png" alt="openkakao" width="720" />
+  <img src="assets/thumbnail-en.png" alt="openkakao" width="720" />
 </p>
 
 ## Quick Start

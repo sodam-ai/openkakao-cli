@@ -25,13 +25,13 @@ jobs:
           rustflags: ""
 
       - name: Cargo fmt
-        run: cargo fmt --manifest-path openkakao-cli/Cargo.toml --check
+        run: cargo fmt --manifest-path Cargo.toml --check
 
       - name: Cargo clippy
-        run: cargo clippy --manifest-path openkakao-cli/Cargo.toml -- -D warnings
+        run: cargo clippy --manifest-path Cargo.toml -- -D warnings
 
       - name: Cargo test
-        run: cargo test --manifest-path openkakao-cli/Cargo.toml
+        run: cargo test --manifest-path Cargo.toml
 
   build-aarch64:
     runs-on: macos-14
@@ -47,12 +47,12 @@ jobs:
           rustflags: ""
 
       - name: Build
-        run: cargo build --release --target "$TARGET" --manifest-path openkakao-cli/Cargo.toml
+        run: cargo build --release --target "$TARGET" --manifest-path Cargo.toml
 
       - name: Package artifact
         run: |
           ASSET="openkakao-cli-${TARGET}.tar.gz"
-          tar -C "openkakao-cli/target/${TARGET}/release" -czf "$ASSET" openkakao-cli
+          tar -C "target/${TARGET}/release" -czf "$ASSET" openkakao-cli
           shasum -a 256 "$ASSET" > "$ASSET.sha256"
 
       - name: Upload artifact
@@ -77,12 +77,12 @@ jobs:
           rustflags: ""
 
       - name: Build
-        run: cargo build --release --target "$TARGET" --manifest-path openkakao-cli/Cargo.toml
+        run: cargo build --release --target "$TARGET" --manifest-path Cargo.toml
 
       - name: Package artifact
         run: |
           ASSET="openkakao-cli-${TARGET}.tar.gz"
-          tar -C "openkakao-cli/target/${TARGET}/release" -czf "$ASSET" openkakao-cli
+          tar -C "target/${TARGET}/release" -czf "$ASSET" openkakao-cli
           shasum -a 256 "$ASSET" > "$ASSET.sha256"
 
       - name: Upload artifact

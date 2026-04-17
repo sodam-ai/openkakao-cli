@@ -3,11 +3,19 @@ name: openkakao-cli CI
 on:
   push:
     paths:
-      - "openkakao-cli/**"
+      - "src/**"
+      - "tests/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "rust-toolchain.toml"
       - ".github/workflows/openkakao-cli-ci.yml"
   pull_request:
     paths:
-      - "openkakao-cli/**"
+      - "src/**"
+      - "tests/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "rust-toolchain.toml"
       - ".github/workflows/openkakao-cli-ci.yml"
 
 concurrency:
@@ -16,7 +24,7 @@ concurrency:
 
 env:
   CARGO_TERM_COLOR: always
-  MANIFEST: openkakao-cli/Cargo.toml
+  MANIFEST: Cargo.toml
 
 jobs:
   test:
@@ -35,8 +43,8 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            openkakao-cli/target
-          key: cargo-test-${{ runner.os }}-${{ hashFiles('openkakao-cli/Cargo.lock') }}
+            target
+          key: cargo-test-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
           restore-keys: cargo-test-${{ runner.os }}-
 
       - name: Cargo test
@@ -58,8 +66,8 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            openkakao-cli/target
-          key: cargo-lint-${{ runner.os }}-${{ hashFiles('openkakao-cli/Cargo.lock') }}
+            target
+          key: cargo-lint-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
           restore-keys: cargo-lint-${{ runner.os }}-
 
       - name: Cargo fmt
@@ -84,12 +92,12 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            openkakao-cli/target
-          key: cargo-macos-${{ runner.os }}-${{ hashFiles('openkakao-cli/Cargo.lock') }}
+            target
+          key: cargo-macos-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
           restore-keys: cargo-macos-${{ runner.os }}-
 
       - name: Build release
         run: cargo build --release --manifest-path $MANIFEST
 
       - name: Smoke test
-        run: ./openkakao-cli/target/release/openkakao-cli --version
+        run: ./target/release/openkakao-cli --version

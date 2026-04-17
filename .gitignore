@@ -9,7 +9,7 @@ build/
 credentials.json
 /tmp/
 target/
-openkakao-cli/target/
+target/
 .claude.md
 CLAUDE.md
 .mcp.json

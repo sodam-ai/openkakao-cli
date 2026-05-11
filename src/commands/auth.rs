@@ -134,10 +134,54 @@ pub fn format_remaining(remaining_secs: Option<u64>, until: Option<&str>) -> Str
     }
 }
 
+fn print_login_extraction_hint() {
+    let home = match dirs::home_dir() {
+        Some(h) => h,
+        None => {
+            println!("Could not extract credentials. (failed to resolve home directory)");
+            return;
+        }
+    };
+    let cache_db =
+        home.join("Library/Containers/com.kakao.KakaoTalkMac/Data/Library/Caches/Cache.db");
+
+    if !cache_db.exists() {
+        println!("Could not extract credentials.");
+        println!("  Cache.db not found at:");
+        println!("    {}", cache_db.display());
+        println!(
+            "  Open the KakaoTalk macOS app, sign in, then click a chat at least once so the app"
+        );
+        println!("  populates its HTTP cache. Then retry 'openkakao-cli login --save'.");
+        return;
+    }
+
+    match std::fs::File::open(&cache_db) {
+        Err(e) if e.kind() == std::io::ErrorKind::PermissionDenied => {
+            println!("Could not extract credentials.");
+            println!("  Cache.db exists but is not readable:");
+            println!("    {}", cache_db.display());
+            println!("  Grant Full Disk Access to your terminal in:");
+            println!("    System Settings → Privacy & Security → Full Disk Access");
+            println!("  Then fully quit and reopen the terminal and retry.");
+        }
+        _ => {
+            println!("Could not extract credentials.");
+            println!("  Cache.db is readable but contains no Kakao auth requests yet:");
+            println!("    {}", cache_db.display());
+            println!(
+                "  Open KakaoTalk, click a chat or refresh the friend list so the app issues a"
+            );
+            println!("  REST call, then retry 'openkakao-cli login --save'.");
+            println!("  (Set OPENKAKAO_CLI_DEBUG=1 to see which candidates the scan inspected.)");
+        }
+    }
+}
+
 pub fn cmd_login(save: bool) -> Result<()> {
     let candidates = get_credential_candidates(8)?;
     let Some(_) = candidates.first() else {
-        println!("Could not extract credentials. Is KakaoTalk running?");
+        print_login_extraction_hint();
         return Ok(());
     };
     let creds = select_best_credential(candidates)?;

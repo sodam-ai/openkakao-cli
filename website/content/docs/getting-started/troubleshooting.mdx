@@ -5,19 +5,43 @@ description: Common failure modes when login, LOCO, or watch mode do not behave 
 
 # Troubleshooting
 
-## Login fails immediately
+## `login --save` says "Could not extract credentials"
 
-Check the basics first:
+The login command reads credentials out of the KakaoTalk macOS app's HTTP cache. If it cannot find any auth requests, it prints which condition failed. Walk through the three checks below in order:
 
-- KakaoTalk macOS app is running
-- the app is already logged in
-- you are using the same local user session that owns the app cache
+**1. KakaoTalk has emitted at least one authenticated REST request**
 
-Then retry:
+Open the KakaoTalk macOS app, sign in, and **click a chat or refresh the friend list at least once**. Just leaving the app on the main window is sometimes not enough — the cache is populated by REST calls, not by the app being open.
+
+**2. `Cache.db` actually exists**
+
+```bash
+ls -lh ~/Library/Containers/com.kakao.KakaoTalkMac/Data/Library/Caches/Cache.db
+```
+
+If the file is missing, the app has never run on this user account (or the OS recently cleared the cache). Open KakaoTalk and trigger a REST call as in step 1.
+
+**3. Your terminal has Full Disk Access**
+
+`~/Library/Containers/com.kakao.KakaoTalkMac/...` lives in macOS's sandbox-protected area. Confirm:
+
+```bash
+cat ~/Library/Containers/com.kakao.KakaoTalkMac/Data/Library/Caches/Cache.db > /dev/null
+```
+
+If you get a permission error, add your terminal (Terminal.app, iTerm2, WezTerm, etc.) to **System Settings → Privacy & Security → Full Disk Access** and then fully quit and relaunch the terminal.
+
+Once all three checks pass, retry:
 
 ```bash
 openkakao-cli login --save
 openkakao-cli doctor
+```
+
+For verbose output during the scan:
+
+```bash
+OPENKAKAO_CLI_DEBUG=1 openkakao-cli login --save
 ```
 
 ## Token expired or commands start returning auth errors
@@ -77,8 +101,10 @@ When a LOCO command fails, the server returns a numeric status code. These are t
 Enable debug logging for more detail:
 
 ```bash
-OPENKAKAO_RS_DEBUG=1 openkakao-cli read <chat_id>
+OPENKAKAO_CLI_DEBUG=1 openkakao-cli read <chat_id>
 ```
+
+The previous variable name `OPENKAKAO_RS_DEBUG=1` is still recognized for backward compatibility.
 
 This prints raw LOCO packet exchanges, which helps identify exactly which command is failing and what the server returned.
 

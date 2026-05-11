@@ -82,8 +82,10 @@ It still performs Booking → Checkin → LOGINLIST and reports success with cha
 For verbose protocol logging:
 
 ```bash
-OPENKAKAO_RS_DEBUG=1 openkakao-cli loco-test
+OPENKAKAO_CLI_DEBUG=1 openkakao-cli loco-test
 ```
+
+The legacy variable `OPENKAKAO_RS_DEBUG=1` is still honored as a fallback for existing scripts.
 
 ---
 

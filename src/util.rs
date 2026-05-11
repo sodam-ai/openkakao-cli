@@ -16,6 +16,10 @@ pub fn color_enabled() -> bool {
     !NO_COLOR.load(Ordering::Relaxed)
 }
 
+pub fn debug_enabled() -> bool {
+    std::env::var("OPENKAKAO_CLI_DEBUG").is_ok() || std::env::var("OPENKAKAO_RS_DEBUG").is_ok()
+}
+
 pub fn format_outgoing_message(message: &str, no_prefix: bool) -> String {
     if no_prefix {
         message.to_string()

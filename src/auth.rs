@@ -26,7 +26,7 @@ pub fn get_credential_candidates(max_candidates: usize) -> Result<Vec<KakaoCrede
     }
 
     let mut out = Vec::new();
-    let debug = std::env::var("OPENKAKAO_RS_DEBUG").is_ok();
+    let debug = crate::util::debug_enabled();
     for candidate in extracted.into_iter().take(max_candidates.max(1)) {
         if debug {
             eprintln!(

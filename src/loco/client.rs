@@ -341,7 +341,10 @@ impl LocoClient {
             let mut tcp = TcpStream::connect((host, port)).await?;
             let enc = LocoEncryptor::new();
             let handshake = enc.build_handshake_packet()?;
-            if std::env::var("OPENKAKAO_RS_DEBUG").is_ok() && handshake.len() >= 12 {
+            if (std::env::var("OPENKAKAO_CLI_DEBUG").is_ok()
+                || std::env::var("OPENKAKAO_RS_DEBUG").is_ok())
+                && handshake.len() >= 12
+            {
                 let key_size =
                     u32::from_le_bytes([handshake[0], handshake[1], handshake[2], handshake[3]]);
                 let key_type =
@@ -519,7 +522,9 @@ impl LocoClient {
             "bg": false,
         };
 
-        if std::env::var("OPENKAKAO_RS_DEBUG").is_ok() {
+        if std::env::var("OPENKAKAO_CLI_DEBUG").is_ok()
+            || std::env::var("OPENKAKAO_RS_DEBUG").is_ok()
+        {
             eprintln!(
                 "[login] LOGINLIST: appVer={}, os=mac, token_len={}",
                 self.credentials.app_version,

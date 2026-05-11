@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-05-11
+
+### Changed
+- `openkakao-cli login --save` now prints a diagnostic when no credentials can be extracted: it shows the exact `Cache.db` path it inspected, distinguishes "file missing" / "file unreadable (Full Disk Access needed)" / "file present but no Kakao auth requests yet", and points to the action that resolves each case (#15).
+- Debug logging environment variable is now `OPENKAKAO_CLI_DEBUG=1`. The legacy `OPENKAKAO_RS_DEBUG=1` is still honored as a fallback so existing scripts continue to work.
+
+### Docs
+- Troubleshooting guide now walks through the three common causes of the credential-extraction failure (KakaoTalk hasn't issued a REST call yet, `Cache.db` missing, terminal lacks Full Disk Access).
+
 ## [1.2.0] - 2026-04-17
 
 ### Changed

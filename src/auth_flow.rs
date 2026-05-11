@@ -111,7 +111,7 @@ pub fn resolve_base_credentials() -> Result<KakaoCredentials> {
                 }
                 Ok(None) => {}
                 Err(e) => {
-                    if std::env::var("OPENKAKAO_RS_DEBUG").is_ok() {
+                    if crate::util::debug_enabled() {
                         eprintln!("[auth] Cache.db rest_token extraction failed: {}", e);
                     }
                 }

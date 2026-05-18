@@ -5,6 +5,16 @@ description: Common failure modes when login, LOCO, or watch mode do not behave 
 
 # Troubleshooting
 
+## KakaoTalk macOS compatibility for `login --save`
+
+`login --save` works by reading the KakaoTalk macOS app's HTTP cache (`Cache.db`) and pulling the `Authorization` header out of cached REST responses. Recent KakaoTalk macOS builds have changed how they cache responses — authenticated REST calls are no longer written to `NSURLCache`. On those builds:
+
+- `Cache.db` still exists, is readable, and contains entries — but **zero entries with an `Authorization` header**.
+- v1.2.2+ detects this and prints a dedicated message pointing at issue [#15](https://github.com/JungHoonGhae/openkakao-cli/issues/15).
+- "Open the app and click a chat" does **not** help on these builds — the request never reaches `Cache.db` regardless of activity.
+
+If you see the "contains zero entries with an Authorization header" message, you are in this category. Workaround: supply credentials by hand (see "Manual credential entry" below). A long-term fix is being tracked in #15.
+
 ## `login --save` says "Could not extract credentials"
 
 The login command reads credentials out of the KakaoTalk macOS app's HTTP cache. If it cannot find any auth requests, it prints which condition failed. Walk through the three checks below in order:
@@ -43,6 +53,23 @@ For verbose output during the scan:
 ```bash
 OPENKAKAO_CLI_DEBUG=1 openkakao-cli login --save
 ```
+
+## Manual credential entry (when `Cache.db` cannot be used)
+
+If you fall into the compatibility case above, or you are running on a setup where reading the macOS container is not an option, write `~/.config/openkakao/credentials.json` by hand using a token you obtained through another channel:
+
+```json
+{
+  "oauth_token": "<Authorization header value>",
+  "user_id": 1234567890,
+  "device_uuid": "<suffix after the first '-' of the token>",
+  "app_version": "3.7.0",
+  "user_agent": "",
+  "a_header": ""
+}
+```
+
+Then `openkakao-cli auth` to verify. If you have a recoverable account password and a Doppler/secret-manager command, set `auth.password_cmd` in `~/.config/openkakao/config.toml` so relogin can fetch it.
 
 ## Token expired or commands start returning auth errors
 

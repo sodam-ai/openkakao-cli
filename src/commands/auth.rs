@@ -2,7 +2,7 @@ use anyhow::Result;
 use owo_colors::OwoColorize;
 use serde_json::Value;
 
-use crate::auth::{extract_refresh_token, get_credential_candidates};
+use crate::auth::{count_authorization_rows, extract_refresh_token, get_credential_candidates};
 use crate::auth_flow::{attempt_relogin, attempt_renew, select_best_credential, RecoveryAttempt};
 use crate::credentials::save_credentials;
 use crate::loco;
@@ -166,14 +166,45 @@ fn print_login_extraction_hint() {
             println!("  Then fully quit and reopen the terminal and retry.");
         }
         _ => {
-            println!("Could not extract credentials.");
-            println!("  Cache.db is readable but contains no Kakao auth requests yet:");
-            println!("    {}", cache_db.display());
-            println!(
-                "  Open KakaoTalk, click a chat or refresh the friend list so the app issues a"
-            );
-            println!("  REST call, then retry 'openkakao-cli login --save'.");
-            println!("  (Set OPENKAKAO_CLI_DEBUG=1 to see which candidates the scan inspected.)");
+            let auth_rows = count_authorization_rows().ok().flatten();
+            match auth_rows {
+                Some(0) => {
+                    println!("Could not extract credentials.");
+                    println!(
+                        "  Cache.db is readable but contains zero entries with an Authorization"
+                    );
+                    println!(
+                        "  header. Recent KakaoTalk macOS builds no longer cache authenticated"
+                    );
+                    println!(
+                        "  REST responses to NSURLCache, so 'login --save' cannot recover the"
+                    );
+                    println!("  token from this path on these versions.");
+                    println!();
+                    println!(
+                        "  Tracking issue: https://github.com/JungHoonGhae/openkakao-cli/issues/15"
+                    );
+                    println!(
+                        "  Workaround: provide credentials manually — set 'auth.password_cmd'"
+                    );
+                    println!(
+                        "  in ~/.config/openkakao/config.toml, or write credentials.json by hand"
+                    );
+                    println!("  if you already have the token through another means.");
+                }
+                _ => {
+                    println!("Could not extract credentials.");
+                    println!("  Cache.db is readable but no candidates passed parsing:");
+                    println!("    {}", cache_db.display());
+                    println!(
+                        "  Open KakaoTalk, click a chat or refresh the friend list so the app issues a"
+                    );
+                    println!("  REST call, then retry 'openkakao-cli login --save'.");
+                    println!(
+                        "  (Set OPENKAKAO_CLI_DEBUG=1 to see which candidates the scan inspected.)"
+                    );
+                }
+            }
         }
     }
 }

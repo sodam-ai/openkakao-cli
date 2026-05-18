@@ -73,6 +73,48 @@ fn prompt(label: &str) -> Result<String> {
     Ok(input.trim().to_string())
 }
 
+/// Diagnostic: returns the number of Cache.db rows whose serialized request blob
+/// contains the byte sequence `Authorization`. Used by login --save to tell
+/// "Cache.db has entries but none with credentials" (KakaoTalk no longer caches
+/// authenticated REST responses) apart from "parser failed on otherwise valid rows".
+///
+/// Returns `Ok(None)` when the Cache.db is missing or unreadable.
+pub fn count_authorization_rows() -> Result<Option<usize>> {
+    let home = match dirs::home_dir() {
+        Some(h) => h,
+        None => return Ok(None),
+    };
+    let cache_db =
+        home.join("Library/Containers/com.kakao.KakaoTalkMac/Data/Library/Caches/Cache.db");
+    if !cache_db.exists() {
+        return Ok(None);
+    }
+
+    let temp_dir = tempdir().context("Failed to create temporary directory")?;
+    let tmp_db = temp_dir.path().join("Cache.db");
+    if copy_with_timeout(&cache_db, &tmp_db, 5).is_err() {
+        return Ok(None);
+    }
+    let _ = copy_companion_file(&cache_db, &tmp_db, "-wal");
+    let _ = copy_companion_file(&cache_db, &tmp_db, "-shm");
+
+    let conn = match Connection::open(&tmp_db) {
+        Ok(c) => c,
+        Err(_) => return Ok(None),
+    };
+
+    let count: i64 = conn
+        .query_row(
+            "SELECT COUNT(*) FROM cfurl_cache_blob_data \
+             WHERE instr(request_object, CAST('Authorization' AS BLOB)) > 0",
+            [],
+            |row| row.get(0),
+        )
+        .unwrap_or(0);
+
+    Ok(Some(count as usize))
+}
+
 fn extract_candidates_from_cache_db(max_rows: usize) -> Result<Vec<ExtractedCredential>> {
     let home = dirs::home_dir().context("Could not resolve home directory")?;
     let cache_db = home

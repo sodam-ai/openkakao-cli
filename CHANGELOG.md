@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.2] - 2026-05-18
+
+### Changed
+- `login --save` now distinguishes "Cache.db has entries but none carry an `Authorization` header" from "parsing failed on otherwise valid rows". The first case prints a dedicated message that points at the known KakaoTalk macOS compatibility issue (#15) and the manual-entry workaround instead of telling the user to "open KakaoTalk and click a chat" — which does not help on those builds.
+
+### Docs
+- Troubleshooting guide gains a "KakaoTalk macOS compatibility for `login --save`" section explaining why recent KakaoTalk builds break the cache-based extraction, plus a "Manual credential entry" section with the `credentials.json` schema for users who already have a token through other means.
+
+### Known limitation
+- On recent KakaoTalk macOS builds, authenticated REST responses are no longer written to `NSURLCache`, so the `Cache.db` extraction path used by `login --save` cannot recover credentials. Tracked in [#15](https://github.com/JungHoonGhae/openkakao-cli/issues/15). A long-term fix (alternate extraction path, or manual-entry-first flow) is being scoped.
+
 ## [1.2.1] - 2026-05-11
 
 ### Changed

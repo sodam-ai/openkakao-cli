@@ -47,22 +47,13 @@ fn get_platform_uuid() -> Result<String> {
     let stdout = String::from_utf8_lossy(&output.stdout);
     for line in stdout.lines() {
         if line.contains("IOPlatformUUID") {
-            // Extract UUID pattern
-            if let Some(start) = line.find('"') {
-                let rest = &line[start + 1..];
-                if let Some(end) = rest.find('"') {
-                    let val = &rest[..end];
-                    // Find the actual UUID within (skip the key name)
-                    if val == "IOPlatformUUID" {
-                        continue;
-                    }
-                }
-            }
-            // Pattern: "IOPlatformUUID" = "XXXXXXXX-..."
+            // ioreg outputs: "IOPlatformUUID" = "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+            // Split on '"' gives: ["", "IOPlatformUUID", " = ", "UUID-VALUE", ""]
+            // parts[3] is always the UUID value regardless of whether parts[1] is the key name.
             let parts: Vec<&str> = line.split('"').collect();
             if parts.len() >= 4 {
                 let uuid = parts[3].trim();
-                if uuid.len() >= 36 {
+                if uuid.len() >= 36 && uuid != "IOPlatformUUID" {
                     return Ok(uuid.to_string());
                 }
             }
@@ -138,7 +129,125 @@ fn extract_user_id_from_plist(path: &std::path::Path) -> Result<i64> {
         }
     }
 
+    // Strategy C: FSChatWindowFrame_ keys → shared userId (newer KT versions).
+    // Cheap and exact, so it runs before the brute-force fallback below.
+    let frame_prefix = "NSWindow Frame FSChatWindowFrame_";
+    let frame_suffixes: Vec<String> = dict
+        .keys()
+        .filter(|k| k.starts_with(frame_prefix) && k.len() > frame_prefix.len())
+        .map(|k| k[frame_prefix.len()..].to_string())
+        .collect();
+    // Every FSChatWindowFrame_ key for one account carries the SAME userId, so
+    // require the suffixes to be identical rather than merely share a tail —
+    // a shared tail (e.g. 199453377 vs 23377 -> 3377) would parse into a wrong,
+    // smaller userId and silently derive the wrong DB key.
+    if let Some(id) = unique_user_id(&frame_suffixes) {
+        return Ok(id);
+    }
+
+    // Strategy D: SHA-512 brute-force from revision key suffixes (last resort).
+    // Bounded by a wall-clock deadline so a missing/foreign hash cannot hang the CLI.
+    if let Some(hash) = extract_active_account_hash(&dict) {
+        if let Some(id) = recover_user_id_from_sha512(&hash) {
+            return Ok(id);
+        }
+    }
+
     anyhow::bail!("No userId found in plist")
+}
+
+/// SHA-512 of "0" — the default/empty account hash.
+const EMPTY_ACCOUNT_HASH: &str =
+    "31bca02094eb78126a517b206a88c73cfa9ec6f704c7030d18212cace820f025f00bf0ea68dbf3f3a5436ca63b53bf7bf80ad8d5de7d8359d0b7fed9dbc3ab99";
+
+/// Extract the active account's SHA-512 hash from revision keys.
+/// Keys like `DESIGNATEDFRIENDSREVISION:<sha512hex>` appear with non-zero values
+/// for the active account. SHA-512("0") is the default/empty account (skipped).
+fn extract_active_account_hash(dict: &plist::Dictionary) -> Option<String> {
+    let prefix = "DESIGNATEDFRIENDSREVISION:";
+    for (key, val) in dict {
+        if !key.starts_with(prefix) {
+            continue;
+        }
+        let hash = &key[prefix.len()..];
+        if hash == EMPTY_ACCOUNT_HASH {
+            continue;
+        }
+        // Only trust an integer revision counter. A float here would be coerced
+        // with a saturating `as i64` cast (NaN -> 0, 1e300 -> i64::MAX), which
+        // could wrongly select a hash and trigger the expensive brute force.
+        let non_zero = matches!(val, plist::Value::Integer(n) if n.as_signed().unwrap_or(0) != 0);
+        if non_zero {
+            return Some(hash.to_string());
+        }
+    }
+    None
+}
+
+/// Wall-clock budget for the SHA-512 pre-image search. The search is a last
+/// resort and runs on the main thread, so it must not hang the CLI when the
+/// hash has no small pre-image (logged-out account, foreign hash, or a userId
+/// outside the scanned range).
+const SHA512_BRUTE_FORCE_BUDGET: std::time::Duration = std::time::Duration::from_secs(15);
+
+/// Recover a userId by brute-forcing the SHA-512 pre-image.
+/// KakaoTalk stores SHA-512(userId) in plist revision keys. userIds are small
+/// positive integers, so the real value is normally found quickly — but if it
+/// is not present in the scanned range the loop stops at the time budget rather
+/// than burning minutes of CPU.
+fn recover_user_id_from_sha512(hex_hash: &str) -> Option<i64> {
+    use sha2::Digest;
+
+    if hex_hash.len() != 128 {
+        return None;
+    }
+
+    let mut target = [0u8; 64];
+    for (i, chunk) in hex_hash.as_bytes().chunks(2).enumerate() {
+        if i >= 64 {
+            break;
+        }
+        let s = std::str::from_utf8(chunk).ok()?;
+        target[i] = u8::from_str_radix(s, 16).ok()?;
+    }
+
+    let start = std::time::Instant::now();
+    let mut i: i64 = 1;
+    while i <= 10_000_000_000 {
+        let mut hasher = sha2::Sha512::new();
+        hasher.update(i.to_string().as_bytes());
+        let result = hasher.finalize();
+        if result.as_slice() == target {
+            return Some(i);
+        }
+        // Check the deadline periodically to keep the hot loop tight.
+        if i % 1_000_000 == 0 && start.elapsed() >= SHA512_BRUTE_FORCE_BUDGET {
+            if std::env::var("OPENKAKAO_CLI_DEBUG").is_ok()
+                || std::env::var("OPENKAKAO_RS_DEBUG").is_ok()
+            {
+                eprintln!(
+                    "[local-db] SHA-512 userId search hit {}s budget at i={}, giving up",
+                    SHA512_BRUTE_FORCE_BUDGET.as_secs(),
+                    i
+                );
+            }
+            return None;
+        }
+        i += 1;
+    }
+    None
+}
+
+/// Return the userId shared by every `FSChatWindowFrame_` suffix, but only when
+/// all suffixes are identical and parse as an integer. Returns `None` if the
+/// suffixes disagree (which would otherwise collapse to a wrong shared tail).
+fn unique_user_id(suffixes: &[String]) -> Option<i64> {
+    let first = suffixes.first()?;
+    if suffixes.iter().all(|s| s == first) {
+        first.parse::<i64>().ok()
+    } else {
+        None
+    }
 }
 
 fn longest_common_suffix(strings: &[String]) -> Option<String> {
@@ -270,22 +379,28 @@ fn find_database_path(db_name: &str) -> Result<PathBuf> {
         );
     }
 
-    // Look for a file matching the derived database name
+    // Look for a FILE (not directory) matching the derived database name.
+    // Must check it's a regular file — KakaoTalk also creates hex-named directories.
     if let Ok(entries) = std::fs::read_dir(&container_dir) {
         for entry in entries.flatten() {
             let name = entry.file_name().to_string_lossy().to_string();
-            if name.contains(db_name) || name == db_name {
+            if (name == db_name || name.starts_with(db_name))
+                && entry.metadata().map(|m| m.is_file()).unwrap_or(false)
+            {
                 return Ok(entry.path());
             }
         }
     }
 
-    // Fallback: look for any .db or database-like file
+    // Fallback: look for any 78-char hex-named FILE (the DB naming convention).
+    // Exclude -shm and -wal sidecar files.
     if let Ok(entries) = std::fs::read_dir(&container_dir) {
         for entry in entries.flatten() {
             let name = entry.file_name().to_string_lossy().to_string();
-            // KakaoTalk database files are hex-named without extension
-            if name.chars().all(|c| c.is_ascii_hexdigit()) && name.len() > 20 {
+            if name.len() == 78
+                && name.chars().all(|c| c.is_ascii_hexdigit())
+                && entry.metadata().map(|m| m.is_file()).unwrap_or(false)
+            {
                 return Ok(entry.path());
             }
         }
@@ -573,5 +688,36 @@ mod tests {
     fn longest_common_suffix_no_match() {
         let strings = vec!["abc".to_string(), "def".to_string()];
         assert_eq!(longest_common_suffix(&strings), None);
+    }
+
+    #[test]
+    fn unique_user_id_accepts_identical_suffixes() {
+        let s = vec!["199453377".to_string(), "199453377".to_string()];
+        assert_eq!(unique_user_id(&s), Some(199453377));
+    }
+
+    #[test]
+    fn unique_user_id_rejects_shared_tail() {
+        // Different userIds that share a trailing run must NOT collapse to "3377".
+        let s = vec!["199453377".to_string(), "23377".to_string()];
+        assert_eq!(unique_user_id(&s), None);
+    }
+
+    #[test]
+    fn unique_user_id_none_when_empty() {
+        let s: Vec<String> = vec![];
+        assert_eq!(unique_user_id(&s), None);
+    }
+
+    #[test]
+    fn sha512_recovery_finds_small_preimage() {
+        use sha2::Digest;
+        let hash = hex::encode(sha2::Sha512::digest(b"12345"));
+        assert_eq!(recover_user_id_from_sha512(&hash), Some(12345));
+    }
+
+    #[test]
+    fn sha512_recovery_rejects_malformed_hash() {
+        assert_eq!(recover_user_id_from_sha512("not-a-hash"), None);
     }
 }

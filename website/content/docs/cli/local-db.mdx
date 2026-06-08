@@ -120,4 +120,10 @@ Run `doctor` to check if the local database is accessible:
 openkakao-cli doctor --json
 ```
 
+`doctor` reports the platform UUID, the recovered Kakao user ID, and the resolved database path. To recover the user ID it inspects the KakaoTalk preferences plist using several strategies in order, from cheapest to most expensive — the last is a bounded SHA-512 pre-image search that stops after a short time budget, so `doctor` never hangs even when the user ID cannot be recovered on a given KakaoTalk build.
+
+<Callout title="KakaoTalk 26.x">
+  Newer KakaoTalk macOS builds (26.x) stopped writing some of the plist keys earlier versions used. v1.2.3 adds compatible discovery paths for these builds. If `doctor` still cannot resolve the user ID or database path, set `OPENKAKAO_CLI_DEBUG=1` and re-run to see which strategy was attempted.
+</Callout>
+
 The output includes a `Local DB (SQLCipher)` check that verifies UUID extraction, user ID, file existence, and decryption.

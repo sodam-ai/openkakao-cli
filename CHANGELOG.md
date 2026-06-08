@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.3] - 2026-06-08
+
+### Fixed
+- **KakaoTalk 26.x local DB compatibility** (#16, thanks @mickb0t-cell): `ioreg` platform-UUID parsing no longer skips the matching line; local database discovery now matches the actual DB file instead of a hex-named directory or `-wal`/`-shm` sidecar.
+- Added userId recovery paths for newer KakaoTalk builds that no longer write `FSChatWindowTransparency` or explicit userId keys: an exact `FSChatWindowFrame_` suffix lookup and a bounded SHA-512 pre-image search over `DESIGNATEDFRIENDSREVISION:` keys.
+
+### Security
+- The SHA-512 userId search is bounded by a 15-second wall-clock deadline so a missing or foreign hash cannot hang the CLI (the routine runs per-plist and up to 3× in `doctor`).
+- The exact `FSChatWindowFrame_` lookup runs before the brute-force fallback; frame suffixes must be identical to be trusted (a shared trailing run no longer collapses into a wrong, smaller userId); only integer revision values are trusted when selecting the active account hash.
+
 ## [1.2.2] - 2026-05-18
 
 ### Changed

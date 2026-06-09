@@ -65,7 +65,9 @@ brew tap JungHoonGhae/openkakao
 brew install openkakao-cli
 
 # 1. Save auth data
-openkakao-cli login --save
+#    Recent KakaoTalk no longer caches the token, so email+password login is recommended (#15)
+openkakao-cli login --manual --save
+#    (older builds where cache extraction still works: openkakao-cli login --save)
 
 # 2. List chats
 openkakao-cli chats

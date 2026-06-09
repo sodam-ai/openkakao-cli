@@ -65,7 +65,9 @@ brew tap JungHoonGhae/openkakao
 brew install openkakao-cli
 
 # 1. 인증 정보 저장
-openkakao-cli login --save
+#    최신 KakaoTalk은 토큰을 캐시에 남기지 않으므로 이메일+비번 로그인을 권장합니다 (#15)
+openkakao-cli login --manual --save
+#    (예전 빌드에서 캐시 추출이 되는 경우: openkakao-cli login --save)
 
 # 2. 채팅방 목록
 openkakao-cli chats

@@ -38,7 +38,7 @@ pub struct LocalMessage {
 // Device info extraction
 // ---------------------------------------------------------------------------
 
-fn get_platform_uuid() -> Result<String> {
+pub fn get_platform_uuid() -> Result<String> {
     let output = Command::new("/usr/sbin/ioreg")
         .args(["-rd1", "-c", "IOPlatformExpertDevice"])
         .output()

@@ -12,10 +12,13 @@ OpenKakao derives authentication material from the running KakaoTalk macOS app a
 | Credential path | Source | Best for |
 |---|---|---|
 | saved credentials | `~/.config/openkakao/credentials.json` | normal CLI startup |
-| Cache.db extraction | recent KakaoTalk macOS request state | fallback when saved state is stale |
+| `login --manual` | email + password → `login.json` (no cache) | recent KakaoTalk builds that no longer cache the token |
+| Cache.db extraction | recent KakaoTalk macOS request state | fallback when saved state is stale (broken on newer KakaoTalk, see [#15](https://github.com/JungHoonGhae/openkakao-cli/issues/15)) |
 | `login.json` relogin | reconstructed desktop login flow | restoring LOCO-facing commands |
 | `refresh_token` renewal | renewal endpoints + cached refresh token | supervised token refresh attempts |
 | `auth.password_cmd` | external secret command such as Doppler | unattended relogin without storing a plaintext password locally |
+
+`login --manual` is the recommended starting point on current KakaoTalk macOS builds: it does not read `Cache.db`, deriving the device UUID from `IOPlatformUUID` and computing the X-VC header locally. See [Troubleshooting → Manual login](/docs/getting-started/troubleshooting) for the new-device verification caveat.
 
 ## Transport boundary
 

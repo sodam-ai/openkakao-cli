@@ -514,3 +514,23 @@ impl KakaoRestClient {
         Ok(parsed)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn xvc_is_deterministic_sha512_prefix() {
+        // X-VC = SHA512("YLLAS|{login_id}|{uuid}|GRAEB|{user_agent}")[..16]
+        let ua = "KT/3.7.0 Mc/26.1.0 ko";
+        let xvc = KakaoRestClient::generate_xvc(ua, "user@example.com", "ABCD-1234");
+        assert_eq!(xvc.len(), 16);
+        assert!(xvc.chars().all(|c| c.is_ascii_hexdigit()));
+        // Stable across calls with the same inputs.
+        let again = KakaoRestClient::generate_xvc(ua, "user@example.com", "ABCD-1234");
+        assert_eq!(xvc, again);
+        // Different device UUID changes the value.
+        let other = KakaoRestClient::generate_xvc(ua, "user@example.com", "WXYZ-9999");
+        assert_ne!(xvc, other);
+    }
+}

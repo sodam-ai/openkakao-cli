@@ -1,12 +1,16 @@
-use anyhow::Result;
+use anyhow::{Context, Result};
 use owo_colors::OwoColorize;
 use serde_json::Value;
 
 use crate::auth::{count_authorization_rows, extract_refresh_token, get_credential_candidates};
-use crate::auth_flow::{attempt_relogin, attempt_renew, select_best_credential, RecoveryAttempt};
+use crate::auth_flow::{
+    attempt_relogin, attempt_renew, credentials_from_auth_response, select_best_credential,
+    RecoveryAttempt,
+};
 use crate::credentials::save_credentials;
 use crate::loco;
 use crate::loco_helpers::try_renew_token;
+use crate::model::KakaoCredentials;
 use crate::rest::KakaoRestClient;
 use crate::state::recovery_snapshot;
 use crate::util::{color_enabled, get_creds, mask_token, print_loco_error_hint};
@@ -184,13 +188,9 @@ fn print_login_extraction_hint() {
                     println!(
                         "  Tracking issue: https://github.com/JungHoonGhae/openkakao-cli/issues/15"
                     );
-                    println!(
-                        "  Workaround: provide credentials manually — set 'auth.password_cmd'"
-                    );
-                    println!(
-                        "  in ~/.config/openkakao/config.toml, or write credentials.json by hand"
-                    );
-                    println!("  if you already have the token through another means.");
+                    println!();
+                    println!("  Use email + password login instead — it does not need the cache:");
+                    println!("    openkakao-cli login --manual --save");
                 }
                 _ => {
                     println!("Could not extract credentials.");
@@ -237,6 +237,116 @@ pub fn cmd_login(save: bool) -> Result<()> {
     }
 
     Ok(())
+}
+
+/// Default app version string used to build the REST `A`/`User-Agent` headers for
+/// a from-scratch login. KakaoTalk's macOS REST API uses the protocol version
+/// here, not the App Store build number. Override with `--app-version` if a future
+/// server change rejects it.
+const DEFAULT_LOGIN_APP_VERSION: &str = "3.7.0";
+
+/// Log in with email + password instead of scraping the KakaoTalk cache.
+///
+/// This path does not depend on `Cache.db`: the device UUID is read from
+/// `IOPlatformUUID`, the X-VC header is computed locally, and the access token
+/// comes straight from `login.json`. It is the recommended path on recent
+/// KakaoTalk builds that no longer cache the bearer token (#15).
+pub fn cmd_login_manual(
+    save: bool,
+    email: Option<String>,
+    password: Option<String>,
+    app_version: Option<String>,
+) -> Result<()> {
+    let email = match email {
+        Some(e) if !e.trim().is_empty() => e.trim().to_string(),
+        _ => prompt_line("Email or phone number: ")?,
+    };
+    if email.is_empty() {
+        anyhow::bail!("email/phone is required");
+    }
+
+    let password = match password {
+        Some(p) if !p.is_empty() => p,
+        _ => rpassword::prompt_password("Password (input hidden): ")
+            .context("failed to read password")?,
+    };
+    if password.is_empty() {
+        anyhow::bail!("password is required");
+    }
+
+    let device_uuid = crate::local_db::get_platform_uuid()
+        .context("could not read device UUID from IOPlatformUUID")?;
+    let app_version = app_version
+        .filter(|s| !s.trim().is_empty())
+        .unwrap_or_else(|| DEFAULT_LOGIN_APP_VERSION.to_string());
+
+    // Minimal credential shell so the REST client can build its headers.
+    let base = KakaoCredentials::new(
+        String::new(),
+        0,
+        device_uuid.clone(),
+        app_version,
+        String::new(),
+        String::new(),
+    );
+    let client = KakaoRestClient::new(base.clone())?;
+
+    eprintln!("Logging in as {} ...", email);
+    let response = client.login_with_xvc(&email, &password, &device_uuid, "openkakao-cli")?;
+
+    let status = response.get("status").and_then(Value::as_i64).unwrap_or(-1);
+    if status != 0 {
+        let message = response
+            .get("message")
+            .or_else(|| response.get("msg"))
+            .and_then(Value::as_str)
+            .unwrap_or("");
+        print_manual_login_failure(status, message);
+        anyhow::bail!("login failed (status={})", status);
+    }
+
+    let mut creds = credentials_from_auth_response(&base, &response);
+    creds.email = Some(email);
+    if creds.oauth_token.is_empty() {
+        anyhow::bail!("login reported success but the response had no access_token");
+    }
+
+    println!("Login OK!");
+    println!("  User ID: {}", creds.user_id);
+    println!("  Token:   {}...", mask_token(&creds.oauth_token));
+
+    if save {
+        let path = save_credentials(&creds)?;
+        println!("Credentials saved to {}", path.display());
+    } else {
+        println!("(not saved — re-run with --save to persist)");
+    }
+
+    Ok(())
+}
+
+fn print_manual_login_failure(status: i64, message: &str) {
+    eprintln!("Login failed (status={}).", status);
+    if !message.is_empty() {
+        eprintln!("  Server message: {}", message);
+    }
+    // KakaoTalk asks for a second factor / device registration on a new device_uuid.
+    // The exact codes vary by account, so surface a generic hint rather than guess.
+    eprintln!("  If this account requires it, KakaoTalk may be demanding new-device");
+    eprintln!("  verification (a passcode sent to your phone / 2FA). openkakao-cli does");
+    eprintln!("  not yet handle that step. Approve this Mac in the KakaoTalk app first,");
+    eprintln!("  then retry. Double-check the email/phone and password as well.");
+}
+
+fn prompt_line(label: &str) -> Result<String> {
+    use std::io::Write;
+    print!("{}", label);
+    std::io::stdout().flush().ok();
+    let mut input = String::new();
+    std::io::stdin()
+        .read_line(&mut input)
+        .context("failed to read input")?;
+    Ok(input.trim().to_string())
 }
 
 pub fn cmd_renew(json: bool) -> Result<()> {

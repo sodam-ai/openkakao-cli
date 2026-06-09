@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-06-09
+
+### Added
+- **`login --manual`**: log in with your KakaoTalk email/phone and password instead of scraping `Cache.db`. This path does not touch the cache — it derives the device UUID from `IOPlatformUUID`, computes the X-VC header locally, and gets a fresh token from `login.json`. It is the recommended path on recent KakaoTalk macOS builds that no longer cache the bearer token (#15). The password prompt is hidden; `--email`/`--password`/`--app-version` allow non-interactive use.
+- The "zero Authorization rows" message from `login --save` now points users straight at `login --manual --save`.
+
+### Notes
+- Logging in from a device KakaoTalk has not seen before may trigger a passcode / 2FA challenge that openkakao-cli does not yet complete — approve the Mac in the KakaoTalk app first. Login is a normal auth call, not an unofficial protocol write.
+
 ## [1.2.3] - 2026-06-08
 
 ### Fixed

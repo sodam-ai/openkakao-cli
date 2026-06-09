@@ -682,7 +682,7 @@ async fn select_best_credential_async(
         .map_err(|err| anyhow!("credential selection task join failed: {}", err))?
 }
 
-fn credentials_from_auth_response(
+pub(crate) fn credentials_from_auth_response(
     current: &KakaoCredentials,
     response: &Value,
 ) -> KakaoCredentials {

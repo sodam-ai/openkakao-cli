@@ -78,10 +78,23 @@ enum Commands {
     Auth,
     /// Show persisted auth recovery state and cooldowns
     AuthStatus,
-    /// Extract credentials from KakaoTalk cache
+    /// Extract credentials from KakaoTalk cache (or log in with --manual)
     Login {
         #[arg(long)]
         save: bool,
+        /// Log in with email + password instead of reading the KakaoTalk cache.
+        /// Required on recent KakaoTalk builds that no longer cache the token.
+        #[arg(long)]
+        manual: bool,
+        /// Email or phone number for --manual login (prompted if omitted)
+        #[arg(long)]
+        email: Option<String>,
+        /// Password for --manual login (prompted, hidden, if omitted)
+        #[arg(long)]
+        password: Option<String>,
+        /// Override the app version string used in --manual login headers
+        #[arg(long)]
+        app_version: Option<String>,
     },
     /// Show own profile
     Me,
@@ -566,7 +579,19 @@ fn main() -> Result<()> {
     match cli.command {
         Commands::Auth => commands::auth::cmd_auth(json)?,
         Commands::AuthStatus => commands::auth::cmd_auth_status(json)?,
-        Commands::Login { save } => commands::auth::cmd_login(save)?,
+        Commands::Login {
+            save,
+            manual,
+            email,
+            password,
+            app_version,
+        } => {
+            if manual {
+                commands::auth::cmd_login_manual(save, email, password, app_version)?
+            } else {
+                commands::auth::cmd_login(save)?
+            }
+        }
         Commands::Me => commands::rest::cmd_me(json)?,
         Commands::Friends {
             favorites,

@@ -13,7 +13,13 @@ description: Common failure modes when login, LOCO, or watch mode do not behave 
 - v1.2.2+ detects this and prints a dedicated message pointing at issue [#15](https://github.com/JungHoonGhae/openkakao-cli/issues/15).
 - "Open the app and click a chat" does **not** help on these builds — the request never reaches `Cache.db` regardless of activity.
 
-If you see the "contains zero entries with an Authorization header" message, you are in this category. Workaround: supply credentials by hand (see "Manual credential entry" below). A long-term fix is being tracked in #15.
+If you see the "contains zero entries with an Authorization header" message, use **email + password login** instead — it does not touch the cache:
+
+```bash
+openkakao-cli login --manual --save
+```
+
+See "Manual login (`--manual`)" below. A cache-free auto-extraction path is still tracked in #15.
 
 ## `login --save` says "Could not extract credentials"
 
@@ -54,9 +60,27 @@ For verbose output during the scan:
 OPENKAKAO_CLI_DEBUG=1 openkakao-cli login --save
 ```
 
-## Manual credential entry (when `Cache.db` cannot be used)
+## Manual login (`--manual`)
 
-If you fall into the compatibility case above, or you are running on a setup where reading the macOS container is not an option, write `~/.config/openkakao/credentials.json` by hand using a token you obtained through another channel:
+When the cache cannot provide a token (the compatibility case above), log in directly with your KakaoTalk email/phone and password. This path does not read `Cache.db` at all — it derives the device UUID from the Mac's `IOPlatformUUID`, computes the X-VC header locally, and gets a fresh token from `login.json`:
+
+```bash
+openkakao-cli login --manual --save
+```
+
+You will be prompted for your email/phone and password (the password input is hidden). Non-interactive use:
+
+```bash
+openkakao-cli login --manual --save --email you@example.com --password "$KAKAO_PW"
+```
+
+<Callout type="warn" title="New-device verification">
+  Logging in from a device KakaoTalk has not seen before can trigger a passcode / 2FA challenge. openkakao-cli does not yet complete that step — approve this Mac in the KakaoTalk app first, then retry. Login is a normal auth call, not an unofficial protocol write, so it does not by itself risk your account; avoid repeated logins with a spoofed device.
+</Callout>
+
+### Writing `credentials.json` by hand
+
+If you already have a token through another channel, you can write `~/.config/openkakao/credentials.json` directly instead:
 
 ```json
 {
@@ -69,7 +93,7 @@ If you fall into the compatibility case above, or you are running on a setup whe
 }
 ```
 
-Then `openkakao-cli auth` to verify. If you have a recoverable account password and a Doppler/secret-manager command, set `auth.password_cmd` in `~/.config/openkakao/config.toml` so relogin can fetch it.
+Then `openkakao-cli auth` to verify. For unattended relogin, set `auth.password_cmd` (and optionally `auth.email_cmd`) in `~/.config/openkakao/config.toml` so the password is fetched from a secret manager instead of being stored.
 
 ## Token expired or commands start returning auth errors
 

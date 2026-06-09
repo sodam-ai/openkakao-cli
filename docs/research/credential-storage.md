@@ -87,9 +87,11 @@ is not a ban trigger, but repeated logins with a spoofed device should be avoide
 
 ## TODO
 
-- [ ] Add `login --manual` (email/password prompt) that derives `device_uuid` from
-      `IOPlatformUUID` and calls `login_with_xvc`, saving `credentials.json`.
-- [ ] Document the `auth.password_cmd` / `email_cmd` config path as the unattended
-      equivalent.
+- [x] Add `login --manual` (email/password prompt) that derives `device_uuid` from
+      `IOPlatformUUID` and calls `login_with_xvc`, saving `credentials.json`. _(v1.3.0)_
+- [x] Document the `auth.password_cmd` / `email_cmd` config path as the unattended
+      equivalent. _(troubleshooting + authentication docs)_
+- [ ] Handle KakaoTalk new-device verification (passcode / 2FA) in the `--manual`
+      flow so first-time logins from an unseen device can complete.
 - [ ] (Optional, best-effort) Decrypt the obfuscated plist values per the recipe
       above, behind a version guard.

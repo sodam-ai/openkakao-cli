@@ -20,6 +20,79 @@
 //! stub with the same public API stands in on other platforms so the crate
 //! still builds and lints in cross-platform CI.
 
+#[derive(Debug, PartialEq, Eq)]
+pub(crate) enum ChatMatch {
+    Found(usize),
+    NotFound,
+    Ambiguous(usize),
+}
+
+pub(crate) fn match_chat_row(row_names: &[Option<String>], target: &str) -> ChatMatch {
+    let mut matches = row_names
+        .iter()
+        .enumerate()
+        .filter(|(_, name)| name.as_deref() == Some(target));
+
+    match (matches.next(), matches.next()) {
+        (None, _) => ChatMatch::NotFound,
+        (Some((idx, _)), None) => ChatMatch::Found(idx),
+        (Some(_), Some(_)) => {
+            let count = row_names
+                .iter()
+                .filter(|name| name.as_deref() == Some(target))
+                .count();
+            ChatMatch::Ambiguous(count)
+        }
+    }
+}
+
+#[cfg(test)]
+mod match_tests {
+    use super::*;
+
+    #[test]
+    fn empty_list_is_not_found() {
+        assert_eq!(match_chat_row(&[], "Alice"), ChatMatch::NotFound);
+    }
+
+    #[test]
+    fn single_exact_match_is_found() {
+        let names = [Some("Alice".to_string())];
+        assert_eq!(match_chat_row(&names, "Alice"), ChatMatch::Found(0));
+    }
+
+    #[test]
+    fn substring_does_not_match() {
+        // "Alice" must not match a group chat named "Alice & Bob".
+        let names = [Some("Alice & Bob".to_string())];
+        assert_eq!(match_chat_row(&names, "Alice"), ChatMatch::NotFound);
+    }
+
+    #[test]
+    fn exact_match_among_non_matching_rows() {
+        let names = [
+            Some("Alice & Bob".to_string()),
+            Some("Alice".to_string()),
+            Some("Carol".to_string()),
+        ];
+        assert_eq!(match_chat_row(&names, "Alice"), ChatMatch::Found(1));
+    }
+
+    #[test]
+    fn duplicate_names_are_ambiguous() {
+        let names = [Some("Alice".to_string()), Some("Alice".to_string())];
+        assert_eq!(match_chat_row(&names, "Alice"), ChatMatch::Ambiguous(2));
+    }
+
+    #[test]
+    fn unreadable_rows_are_ignored_not_matched() {
+        // A row whose name AX couldn't read (None) must never match, and
+        // must not affect matching of the other rows.
+        let names = [None, Some("Alice".to_string()), None];
+        assert_eq!(match_chat_row(&names, "Alice"), ChatMatch::Found(1));
+    }
+}
+
 #[cfg(target_os = "macos")]
 mod imp {
 
@@ -29,6 +102,7 @@ mod imp {
 
     use accessibility::{AXAttribute, AXUIElement, AXUIElementAttributes};
     use accessibility_sys::kAXPressAction;
+    use accessibility_sys::AXIsProcessTrusted;
     use anyhow::{anyhow, Context, Result};
     use core_foundation::array::CFArray;
     use core_foundation::base::{CFType, TCFType};
@@ -61,6 +135,24 @@ mod imp {
         .ok_or_else(|| {
             anyhow!("KakaoTalk is not running (or `{KAKAOTALK_BUNDLE_ID}` not found) — open it and log in first")
         })
+    }
+
+    /// Check the calling process has been granted Accessibility permission
+    /// before touching the AX tree at all. Without this, every AXUIElement
+    /// call below just silently fails or returns empty results, which
+    /// previously surfaced as a confusing "chat not found" error with no
+    /// hint that the real cause was a missing permission grant.
+    fn ensure_ax_permission() -> Result<()> {
+        if unsafe { AXIsProcessTrusted() } {
+            Ok(())
+        } else {
+            Err(anyhow!(
+                "Accessibility permission is not granted to this terminal app.\n\
+                 Open System Settings → Privacy & Security → Accessibility,\n\
+                 and enable it for your terminal (Terminal.app, iTerm2, etc.),\n\
+                 then re-run this command."
+            ))
+        }
     }
 
     fn children(el: &AXUIElement) -> Result<Vec<AXUIElement>> {
@@ -189,34 +281,36 @@ mod imp {
         let mut rows = Vec::new();
         find_descendants_by_role(table, "AXRow", &mut rows);
 
-        // Match on the row's first AXStaticText (the chat name) exactly, not a
-        // substring — e.g. "Alice" must not accidentally match an "Alice & Bob"
-        // group chat. If more than one row has the exact same display name,
-        // refuse to guess rather than silently picking one (there is no chat-id
-        // to disambiguate with — see SafetyConfig::allowed_send_chats).
-        let mut matches = Vec::new();
-        for row in &rows {
-            let mut texts = Vec::new();
-            find_descendants_by_role(row, "AXStaticText", &mut texts);
-            if texts.first().and_then(value_as_string).as_deref() == Some(chat_display_name) {
-                matches.push(row);
-            }
-        }
+        // Match on the row's first AXStaticText (the chat name) exactly, not
+        // a substring — e.g. "Alice" must not accidentally match an
+        // "Alice & Bob" group chat. If more than one row has the exact same
+        // display name, refuse to guess rather than silently picking one
+        // (there is no chat-id to disambiguate with — see
+        // SafetyConfig::allowed_send_chats). The matching decision itself is
+        // `super::match_chat_row`, a pure function tested outside this
+        // macOS-only module.
+        let row_names: Vec<Option<String>> = rows
+            .iter()
+            .map(|row| {
+                let mut texts = Vec::new();
+                find_descendants_by_role(row, "AXStaticText", &mut texts);
+                texts.first().and_then(value_as_string)
+            })
+            .collect();
 
-        let row = match matches.as_slice() {
-        [] => {
-            return Err(anyhow!(
-                "chat '{chat_display_name}' not found in visible/loaded chat list"
-            ))
-        }
-        [only] => *only,
-        _ => {
-            return Err(anyhow!(
-                "chat name '{chat_display_name}' matches {} chats in the visible list — ambiguous, refusing to guess",
-                matches.len()
-            ))
-        }
-    };
+        let row = match super::match_chat_row(&row_names, chat_display_name) {
+            super::ChatMatch::NotFound => {
+                return Err(anyhow!(
+                    "chat '{chat_display_name}' not found in visible/loaded chat list"
+                ))
+            }
+            super::ChatMatch::Found(idx) => &rows[idx],
+            super::ChatMatch::Ambiguous(count) => {
+                return Err(anyhow!(
+                    "chat name '{chat_display_name}' matches {count} chats in the visible list — ambiguous, refusing to guess"
+                ))
+            }
+        };
 
         // Select via AX attribute (works even for off-screen rows — this is the
         // fix kakaocli landed for its off-screen-row regression) rather than a
@@ -285,9 +379,13 @@ mod imp {
         pub text: String,
     }
 
-    /// Scrape every message bubble currently rendered in a chat window's message
-    /// list, in on-screen (chronological) order. Rows with no `AXTextArea`
-    /// (date separators, system notices) are skipped.
+    /// Scrape every message bubble currently rendered in a chat window's
+    /// message list, in on-screen (chronological) order. A row with an
+    /// `AXTextArea` is a text message; a row with no `AXTextArea` but an
+    /// `AXImage` descendant becomes the placeholder "[사진]"; a row with a
+    /// share-labeled `AXButton` ("공유") becomes "[파일]". Rows matching none
+    /// of these (date separators, system notices) are skipped, same as
+    /// before.
     fn read_visible_messages(window: &AXUIElement) -> Vec<AxMessage> {
         let mut tables = Vec::new();
         find_descendants_by_role(window, "AXTable", &mut tables);
@@ -299,9 +397,7 @@ mod imp {
 
         rows.iter()
             .filter_map(|row| {
-                let mut text_areas = Vec::new();
-                find_descendants_by_role(row, "AXTextArea", &mut text_areas);
-                let text = text_areas.first().and_then(value_as_string)?;
+                let text = message_row_text(row)?;
 
                 let mut static_texts = Vec::new();
                 find_descendants_by_role(row, "AXStaticText", &mut static_texts);
@@ -312,6 +408,34 @@ mod imp {
                 Some(AxMessage { time, text })
             })
             .collect()
+    }
+
+    /// Classify one message row into displayable text: the row's own
+    /// `AXTextArea` value if present, else a placeholder if the row looks
+    /// like an image or file share, else `None` (not a real message row).
+    fn message_row_text(row: &AXUIElement) -> Option<String> {
+        let mut text_areas = Vec::new();
+        find_descendants_by_role(row, "AXTextArea", &mut text_areas);
+        if let Some(text) = text_areas.first().and_then(value_as_string) {
+            return Some(text);
+        }
+
+        let mut images = Vec::new();
+        find_descendants_by_role(row, "AXImage", &mut images);
+        if !images.is_empty() {
+            return Some("[사진]".to_string());
+        }
+
+        let mut buttons = Vec::new();
+        find_descendants_by_role(row, "AXButton", &mut buttons);
+        if buttons
+            .iter()
+            .any(|b| attr_as_string(b, "AXDescription").as_deref() == Some("공유"))
+        {
+            return Some("[파일]".to_string());
+        }
+
+        None
     }
 
     /// Scrape the text of every message bubble currently rendered in a chat
@@ -346,6 +470,7 @@ mod imp {
     /// scrolling up in KakaoTalk first.
     pub fn read_via_ax(chat_display_name: &str, count: usize) -> Result<Vec<AxMessage>> {
         let pid = find_kakaotalk_pid()?;
+        ensure_ax_permission()?;
         let app = AXUIElement::application(pid);
 
         open_chat_row(&app, chat_display_name)?;
@@ -380,6 +505,7 @@ mod imp {
     /// in the chat list (same matching convention as kakaocli's `send`).
     pub fn send_via_ax(chat_display_name: &str, message: &str) -> Result<()> {
         let pid = find_kakaotalk_pid()?;
+        ensure_ax_permission()?;
         let app = AXUIElement::application(pid);
 
         open_chat_row(&app, chat_display_name)?;

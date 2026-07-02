@@ -109,8 +109,9 @@ mod imp {
     use accessibility::{AXAttribute, AXUIElement, AXUIElementAttributes};
     use accessibility_sys::kAXPressAction;
     use accessibility_sys::AXIsProcessTrusted;
+    use accessibility_sys::{AXUIElementCopyMultipleAttributeValues, AXUIElementRef};
     use anyhow::{anyhow, Context, Result};
-    use core_foundation::array::CFArray;
+    use core_foundation::array::{CFArray, CFArrayRef};
     use core_foundation::base::{CFType, TCFType};
     use core_foundation::string::CFString;
     use core_graphics::event::CGEvent;
@@ -161,24 +162,8 @@ mod imp {
         }
     }
 
-    fn children(el: &AXUIElement) -> Result<Vec<AXUIElement>> {
-        let arr = el
-            .children()
-            .map_err(|e| anyhow!("AXChildren read failed: {e:?}"))?;
-        Ok(arr.iter().map(|e| e.clone()).collect())
-    }
-
     fn role(el: &AXUIElement) -> String {
         el.role().map(|s| s.to_string()).unwrap_or_default()
-    }
-
-    /// Read an element's `AXValue` as a string (works for `AXStaticText` and
-    /// `AXTextArea`; other value types just fail the downcast and are skipped).
-    fn value_as_string(el: &AXUIElement) -> Option<String> {
-        el.value()
-            .ok()
-            .and_then(|v| v.downcast::<CFString>())
-            .map(|s| s.to_string())
     }
 
     /// Read a string attribute by raw name (works for attributes with no typed
@@ -207,13 +192,129 @@ mod imp {
             })
     }
 
-    fn find_descendants_by_role(root: &AXUIElement, target_role: &str, out: &mut Vec<AXUIElement>) {
-        if role(root) == target_role {
-            out.push(root.clone());
+    /// A single recursive snapshot of an AX subtree, capturing each node's
+    /// role/value/help/description once so later lookups (`find_first`,
+    /// `find_all`) run entirely in memory instead of re-walking the tree via
+    /// AX's cross-process IPC on every call. Building this snapshot costs
+    /// roughly the same as one `find_descendants_by_role` call; the win is
+    /// not calling `find_descendants_by_role` dozens of times against
+    /// overlapping subtrees, which is what made `open_chat_row` take ~9s
+    /// against an 84-row chat list before this change.
+    struct AxNode {
+        element: AXUIElement,
+        role: String,
+        value: Option<String>,
+        help: Option<String>,
+        description: Option<String>,
+        children: Vec<AxNode>,
+    }
+
+    /// Build an `AxNode` tree rooted at `root` with one recursive walk,
+    /// fetching every node's role, children, value, help, and description in
+    /// a **single** `AXUIElementCopyMultipleAttributeValues` IPC round-trip
+    /// instead of 2–5 separate `AXUIElementCopyAttributeValue` calls. Each AX
+    /// call is a cross-process round-trip to KakaoTalk, so on its ~700-node
+    /// main window collapsing five calls into one roughly halves the wall
+    /// time of the walk (measured ~4.3ms/node with the old per-attribute
+    /// approach). Attributes a node doesn't carry come back as error
+    /// placeholders in the same call (`options = 0`, i.e. don't stop on the
+    /// first missing one), so they cost no extra round-trip and simply fail
+    /// the `downcast` to `None`.
+    fn snapshot(root: &AXUIElement) -> AxNode {
+        // Order matters: these indices are read back positionally below.
+        let names = CFArray::from_CFTypes(&[
+            CFString::new("AXRole").as_CFType(),
+            CFString::new("AXChildren").as_CFType(),
+            CFString::new("AXValue").as_CFType(),
+            CFString::new("AXHelp").as_CFType(),
+            CFString::new("AXDescription").as_CFType(),
+        ]);
+
+        let mut values_ref: CFArrayRef = std::ptr::null();
+        let err = unsafe {
+            AXUIElementCopyMultipleAttributeValues(
+                root.as_concrete_TypeRef(),
+                names.as_concrete_TypeRef(),
+                0, // don't stop on error — missing attrs return placeholders
+                &mut values_ref,
+            )
+        };
+        if err != 0 || values_ref.is_null() {
+            // Rare: the batch call failed for this element. Fall back to a
+            // leaf node carrying just the role via the slow per-attr path,
+            // so one failed call doesn't drop the whole subtree.
+            return AxNode {
+                element: root.clone(),
+                role: role(root),
+                value: None,
+                help: None,
+                description: None,
+                children: Vec::new(),
+            };
         }
-        if let Ok(kids) = children(root) {
-            for kid in kids {
-                find_descendants_by_role(&kid, target_role, out);
+        let values = unsafe { CFArray::<CFType>::wrap_under_create_rule(values_ref) };
+
+        let string_at = |i: isize| -> Option<String> {
+            values
+                .get(i)
+                .and_then(|v| v.downcast::<CFString>())
+                .map(|s| s.to_string())
+        };
+
+        // Slot 1 is the AXChildren array. `ConcreteCFType` is only implemented
+        // for the untyped `CFArray<*const c_void>`, so downcast to that and
+        // wrap each raw element ref as an `AXUIElement` under the get rule
+        // (retain), the same +1 retain semantics the typed `.children()`
+        // accessor gives. A node with no children yields an error placeholder
+        // that fails the array downcast → empty Vec.
+        let node_children = values
+            .get(1)
+            .and_then(|v| v.downcast::<CFArray<*const std::ffi::c_void>>())
+            .map(|arr| {
+                arr.iter()
+                    .map(|child_ref| {
+                        let child = unsafe {
+                            AXUIElement::wrap_under_get_rule(*child_ref as AXUIElementRef)
+                        };
+                        snapshot(&child)
+                    })
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        AxNode {
+            element: root.clone(),
+            role: string_at(0).unwrap_or_default(),
+            value: string_at(2),
+            help: string_at(3),
+            description: string_at(4),
+            children: node_children,
+        }
+    }
+
+    impl AxNode {
+        /// First descendant (pre-order, self included) with the given role —
+        /// same traversal order `find_descendants_by_role(...).first()` used,
+        /// just resolved from the in-memory tree instead of a fresh AX walk.
+        fn find_first(&self, target_role: &str) -> Option<&AxNode> {
+            if self.role == target_role {
+                return Some(self);
+            }
+            for child in &self.children {
+                if let Some(found) = child.find_first(target_role) {
+                    return Some(found);
+                }
+            }
+            None
+        }
+
+        /// All descendants (pre-order, self included) with the given role.
+        fn find_all<'a>(&'a self, target_role: &str, out: &mut Vec<&'a AxNode>) {
+            if self.role == target_role {
+                out.push(self);
+            }
+            for child in &self.children {
+                child.find_all(target_role, out);
             }
         }
     }
@@ -258,34 +359,49 @@ mod imp {
     /// active; the Friends tab renders an `AXOutline` instead. Left over from an
     /// earlier manual tab switch during development, this makes `open_chat_row`
     /// resilient to whatever tab the window happens to be on.
-    fn ensure_chatrooms_tab(main_window: &AXUIElement) {
-        let mut tables = Vec::new();
-        find_descendants_by_role(main_window, "AXTable", &mut tables);
-        if !tables.is_empty() {
-            return;
+    ///
+    /// Returns the AxNode snapshot to use afterward — either the one just
+    /// taken (if the table was already visible) or a fresh one (if the tab
+    /// was just pressed, since that changes the UI). Returning the snapshot
+    /// instead of re-taking it in the caller avoids a second full tree walk
+    /// in the common case (already on the right tab), which previously
+    /// doubled open_chat_row's cost.
+    fn ensure_chatrooms_tab(main_window: &AXUIElement) -> AxNode {
+        let snap = snapshot(main_window);
+        if snap.find_first("AXTable").is_some() {
+            return snap;
         }
         let mut buttons = Vec::new();
-        find_descendants_by_role(main_window, "AXButton", &mut buttons);
+        snap.find_all("AXButton", &mut buttons);
         if let Some(tab) = buttons
             .iter()
-            .find(|b| attr_as_string(b, "AXIdentifier").as_deref() == Some("chatrooms"))
+            .find(|b| attr_as_string(&b.element, "AXIdentifier").as_deref() == Some("chatrooms"))
         {
-            let _ = tab.perform_action(&CFString::new(kAXPressAction));
+            let _ = tab.element.perform_action(&CFString::new(kAXPressAction));
             sleep(Duration::from_millis(400));
+            return snapshot(main_window);
         }
+        snap
     }
 
     fn open_chat_row(app: &AXUIElement, chat_display_name: &str) -> Result<()> {
+        let debug = std::env::var("OPENKAKAO_CLI_DEBUG").is_ok();
+        let start = Instant::now();
+
         let main_window = find_main_window(app)?;
-        ensure_chatrooms_tab(&main_window);
-        let mut tables = Vec::new();
-        find_descendants_by_role(&main_window, "AXTable", &mut tables);
-        let table = tables
-            .first()
+        let snap = ensure_chatrooms_tab(&main_window);
+        if debug {
+            eprintln!(
+                "[ax_send] open_chat_row: snapshot took {:?}",
+                start.elapsed()
+            );
+        }
+        let table = snap
+            .find_first("AXTable")
             .ok_or_else(|| anyhow!("could not find chat list table in KakaoTalk's AX tree"))?;
 
         let mut rows = Vec::new();
-        find_descendants_by_role(table, "AXRow", &mut rows);
+        table.find_all("AXRow", &mut rows);
 
         // Match on the row's first AXStaticText (the chat name) exactly, not
         // a substring — e.g. "Alice" must not accidentally match an
@@ -297,11 +413,7 @@ mod imp {
         // macOS-only module.
         let row_names: Vec<Option<String>> = rows
             .iter()
-            .map(|row| {
-                let mut texts = Vec::new();
-                find_descendants_by_role(row, "AXStaticText", &mut texts);
-                texts.first().and_then(value_as_string)
-            })
+            .map(|row| row.find_first("AXStaticText").and_then(|t| t.value.clone()))
             .collect();
 
         let row = match super::match_chat_row(&row_names, chat_display_name) {
@@ -310,7 +422,7 @@ mod imp {
                     "chat '{chat_display_name}' not found in visible/loaded chat list"
                 ))
             }
-            super::ChatMatch::Found(idx) => &rows[idx],
+            super::ChatMatch::Found(idx) => rows[idx],
             super::ChatMatch::Ambiguous(count) => {
                 return Err(anyhow!(
                     "chat name '{chat_display_name}' matches {count} chats in the visible list — ambiguous, refusing to guess"
@@ -325,11 +437,15 @@ mod imp {
         // `accessibility` crate either way, so it's addressed by raw name).
         let selected_rows_attr: AXAttribute<CFType> =
             AXAttribute::new(&CFString::new("AXSelectedRows"));
-        let one_row = CFArray::from_CFTypes(std::slice::from_ref(row));
+        let one_row = CFArray::from_CFTypes(std::slice::from_ref(&row.element));
         table
+            .element
             .set_attribute(&selected_rows_attr, one_row.as_CFType())
             .map_err(|e| anyhow!("failed to select chat row: {e:?}"))?;
 
+        if debug {
+            eprintln!("[ax_send] open_chat_row: total {:?}", start.elapsed());
+        }
         Ok(())
     }
 
@@ -337,19 +453,16 @@ mod imp {
     /// message composer: an `AXScrollArea` that wraps an `AXTextArea` but no
     /// `AXTable` (which would make it the message list instead).
     fn find_input_field_in(root: &AXUIElement) -> Option<AXUIElement> {
+        let snap = snapshot(root);
         let mut scroll_areas = Vec::new();
-        find_descendants_by_role(root, "AXScrollArea", &mut scroll_areas);
+        snap.find_all("AXScrollArea", &mut scroll_areas);
 
         for area in scroll_areas {
-            let mut tables = Vec::new();
-            find_descendants_by_role(&area, "AXTable", &mut tables);
-            if !tables.is_empty() {
+            if area.find_first("AXTable").is_some() {
                 continue; // this scroll area is the message list, not the composer
             }
-            let mut text_areas = Vec::new();
-            find_descendants_by_role(&area, "AXTextArea", &mut text_areas);
-            if let Some(field) = text_areas.into_iter().next() {
-                return Some(field);
+            if let Some(field) = area.find_first("AXTextArea") {
+                return Some(field.element.clone());
             }
         }
         None
@@ -393,23 +506,20 @@ mod imp {
     /// of these (date separators, system notices) are skipped, same as
     /// before.
     fn read_visible_messages(window: &AXUIElement) -> Vec<AxMessage> {
-        let mut tables = Vec::new();
-        find_descendants_by_role(window, "AXTable", &mut tables);
-        let Some(table) = tables.first() else {
+        let snap = snapshot(window);
+        let Some(table) = snap.find_first("AXTable") else {
             return Vec::new();
         };
         let mut rows = Vec::new();
-        find_descendants_by_role(table, "AXRow", &mut rows);
+        table.find_all("AXRow", &mut rows);
 
         rows.iter()
             .filter_map(|row| {
                 let text = message_row_text(row)?;
 
-                let mut static_texts = Vec::new();
-                find_descendants_by_role(row, "AXStaticText", &mut static_texts);
-                let time = static_texts
-                    .first()
-                    .and_then(|t| attr_as_string(t, "AXHelp").or_else(|| value_as_string(t)));
+                let time = row
+                    .find_first("AXStaticText")
+                    .and_then(|t| t.help.clone().or_else(|| t.value.clone()));
 
                 Some(AxMessage { time, text })
             })
@@ -419,24 +529,22 @@ mod imp {
     /// Classify one message row into displayable text: the row's own
     /// `AXTextArea` value if present, else a placeholder if the row looks
     /// like an image or file share, else `None` (not a real message row).
-    fn message_row_text(row: &AXUIElement) -> Option<String> {
-        let mut text_areas = Vec::new();
-        find_descendants_by_role(row, "AXTextArea", &mut text_areas);
-        if let Some(text) = text_areas.first().and_then(value_as_string) {
-            return Some(text);
+    fn message_row_text(row: &AxNode) -> Option<String> {
+        if let Some(text_area) = row.find_first("AXTextArea") {
+            if let Some(text) = &text_area.value {
+                return Some(text.clone());
+            }
         }
 
-        let mut images = Vec::new();
-        find_descendants_by_role(row, "AXImage", &mut images);
-        if !images.is_empty() {
+        if row.find_first("AXImage").is_some() {
             return Some("[사진]".to_string());
         }
 
         let mut buttons = Vec::new();
-        find_descendants_by_role(row, "AXButton", &mut buttons);
+        row.find_all("AXButton", &mut buttons);
         if buttons
             .iter()
-            .any(|b| attr_as_string(b, "AXDescription").as_deref() == Some("공유"))
+            .any(|b| b.description.as_deref() == Some("공유"))
         {
             return Some("[파일]".to_string());
         }
@@ -475,6 +583,8 @@ mod imp {
     /// messages already rendered on screen are returned — older history requires
     /// scrolling up in KakaoTalk first.
     pub fn read_via_ax(chat_display_name: &str, count: usize) -> Result<Vec<AxMessage>> {
+        let debug = std::env::var("OPENKAKAO_CLI_DEBUG").is_ok();
+        let start = Instant::now();
         let pid = find_kakaotalk_pid()?;
         ensure_ax_permission()?;
         let app = AXUIElement::application(pid);
@@ -483,10 +593,11 @@ mod imp {
         press_return(pid)?;
 
         let deadline = Instant::now() + OPEN_CHAT_TIMEOUT;
-        let window = loop {
+        let mut messages = loop {
             if let Some(window) = find_chat_window(&app, chat_display_name) {
-                if !read_visible_messages(&window).is_empty() {
-                    break window;
+                let msgs = read_visible_messages(&window);
+                if !msgs.is_empty() {
+                    break msgs;
                 }
             }
             if Instant::now() >= deadline {
@@ -494,10 +605,11 @@ mod imp {
             }
             sleep(Duration::from_millis(150));
         };
-
-        let mut messages = read_visible_messages(&window);
         if messages.len() > count {
             messages = messages.split_off(messages.len() - count);
+        }
+        if debug {
+            eprintln!("[ax_send] read_via_ax: total {:?}", start.elapsed());
         }
         Ok(messages)
     }

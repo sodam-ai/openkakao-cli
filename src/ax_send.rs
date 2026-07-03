@@ -113,6 +113,7 @@ mod imp {
     use anyhow::{anyhow, Context, Result};
     use core_foundation::array::{CFArray, CFArrayRef};
     use core_foundation::base::{CFType, TCFType};
+    use core_foundation::boolean::CFBoolean;
     use core_foundation::string::CFString;
     use core_graphics::event::CGEvent;
     use core_graphics::event_source::{CGEventSource, CGEventSourceStateID};
@@ -183,13 +184,44 @@ mod imp {
         let windows = app
             .windows()
             .map_err(|e| anyhow!("AXWindows read failed: {e:?}"))?;
-        windows
+        let window = windows
             .iter()
             .find(|w| attr_as_string(w, "AXIdentifier").as_deref() == Some("Main Window"))
             .map(|w| w.clone())
             .ok_or_else(|| {
-                anyhow!("could not find KakaoTalk's main chat-list window — is it open?")
-            })
+                anyhow!(
+                    "could not find KakaoTalk's main chat-list window. Make sure it's open, not \
+                     minimized, and on the Space (virtual desktop) you're currently viewing — the \
+                     Accessibility API only sees windows that are visible on the active Space, and \
+                     restoring a minimized/off-Space window automatically risks stealing your \
+                     foreground focus, which this tool never does. One-time fix if this keeps \
+                     happening: right-click the KakaoTalk Dock icon → Options → \
+                     Assign To → All Desktops."
+                )
+            })?;
+
+        // Note: a minimized window still shows up here (unlike one on another
+        // Space, which disappears from `windows()` entirely), but restoring
+        // it via AXMinimized=false was observed to sometimes bring KakaoTalk
+        // to the foreground — which this tool must never do — so we
+        // deliberately do NOT auto-restore. The caller gets the same "not
+        // found" error and a manual fix, same as the off-Space case.
+        let minimized_attr: AXAttribute<CFType> = AXAttribute::new(&CFString::new("AXMinimized"));
+        let is_minimized = window
+            .attribute(&minimized_attr)
+            .ok()
+            .and_then(|v| v.downcast::<CFBoolean>())
+            .map(bool::from)
+            == Some(true);
+        if is_minimized {
+            return Err(anyhow!(
+                "KakaoTalk's main chat-list window is minimized. Restoring it automatically risks \
+                 stealing your foreground focus, which this tool never does — please un-minimize \
+                 it yourself (click its Dock icon) and retry."
+            ));
+        }
+
+        Ok(window)
     }
 
     /// A single recursive snapshot of an AX subtree, capturing each node's
@@ -679,6 +711,80 @@ mod imp {
         }
     }
 
+    /// One chat-list row scraped from the main window, read-only (never opens
+    /// the chat, so its unread state is untouched).
+    #[derive(Debug, Clone)]
+    pub struct ChatListRow {
+        pub name: String,
+        pub unread: i32,
+        pub preview: String,
+        // Scraped for completeness but not currently consumed by any caller
+        // (ax-watch's event doesn't need the row's own last-message
+        // timestamp); keep it available for future use.
+        #[allow(dead_code)]
+        pub timestamp: String,
+    }
+
+    /// Scrape every visible/loaded chat-list row from KakaoTalk's main window.
+    /// Uses the same single-snapshot chat-list traversal as `open_chat_row`
+    /// (main window → chatrooms tab → AXTable → AXRow), but only reads each
+    /// row instead of selecting it — so nothing is opened and no unread state
+    /// changes. Rows with no readable name are skipped.
+    pub fn scrape_chat_list() -> Result<Vec<ChatListRow>> {
+        let pid = find_kakaotalk_pid()?;
+        ensure_ax_permission()?;
+        let app = AXUIElement::application(pid);
+        let main_window = find_main_window(&app)?;
+        let snap = ensure_chatrooms_tab(&main_window);
+        let table = snap
+            .find_first("AXTable")
+            .ok_or_else(|| anyhow!("could not find chat list table in KakaoTalk's AX tree"))?;
+
+        let mut rows = Vec::new();
+        table.find_all("AXRow", &mut rows);
+
+        let mut out = Vec::with_capacity(rows.len());
+        for row in rows {
+            let mut static_texts = Vec::new();
+            row.find_all("AXStaticText", &mut static_texts);
+            // The first static text is the chat name (same convention as
+            // open_chat_row). Skip rows we can't name.
+            let Some(name) = static_texts.first().and_then(|t| t.value.clone()) else {
+                continue;
+            };
+            // Among the remaining static texts, the unread badge is the one
+            // whose whole value parses as an integer (e.g. "5"); a
+            // non-numeric one (e.g. "어제", "오후 3:14") is the timestamp.
+            let mut unread = 0;
+            let mut timestamp = String::new();
+            for t in static_texts.iter().skip(1) {
+                let Some(v) = t.value.as_deref() else {
+                    continue;
+                };
+                if let Ok(n) = v.trim().parse::<i32>() {
+                    if unread == 0 {
+                        unread = n;
+                    }
+                } else if timestamp.is_empty() {
+                    timestamp = v.to_string();
+                }
+            }
+            // The last-message preview is the row's AXTextArea value.
+            let preview = row
+                .find_first("AXTextArea")
+                .and_then(|t| t.value.clone())
+                .unwrap_or_default();
+
+            out.push(ChatListRow {
+                name,
+                unread,
+                preview,
+                timestamp,
+            });
+        }
+        Ok(out)
+    }
+
     #[cfg(test)]
     mod tests {
         use super::*;
@@ -704,7 +810,7 @@ mod imp {
 } // mod imp
 
 #[cfg(target_os = "macos")]
-pub use imp::{read_via_ax, send_via_ax};
+pub use imp::{read_via_ax, scrape_chat_list, send_via_ax, ChatListRow};
 
 #[cfg(not(target_os = "macos"))]
 mod stub {
@@ -731,7 +837,24 @@ mod stub {
             "ax-read (AX automation) is only supported on macOS"
         ))
     }
+
+    /// Mirrors `imp::ChatListRow`. Never constructed off macOS (the fn below
+    /// always errors), so its fields would otherwise trip `dead_code`.
+    #[allow(dead_code)]
+    #[derive(Debug, Clone)]
+    pub struct ChatListRow {
+        pub name: String,
+        pub unread: i32,
+        pub preview: String,
+        pub timestamp: String,
+    }
+
+    pub fn scrape_chat_list() -> Result<Vec<ChatListRow>> {
+        Err(anyhow!(
+            "ax-watch (AX automation) is only supported on macOS"
+        ))
+    }
 }
 
 #[cfg(not(target_os = "macos"))]
-pub use stub::{read_via_ax, send_via_ax};
+pub use stub::{read_via_ax, scrape_chat_list, send_via_ax, ChatListRow};
